@@ -7,47 +7,27 @@
 #include "worker.h"
 
 template<class D>
-class netconnectionhandler
+class netconnectionhandler : public worker<D>
 {
-    class workerconnhandler : public worker<D>
-    {
-        bool stop;
-        int sock;
-        struct sockaddr_in sa_local;
-        std::mutex mtx;
-        std::queue<D> message_queue;
-        std::condition_variable data_cond;
-
-    public:
-        workerconnhandler();
-        void EnqueMsg(const D &data);
-        worker<D> &operator << (const D &data);
-
-        typename worker<D>::HANDLE_RES HandleMsg(const D &data);
-        void MainLoop();
-        ~workerconnhandler(){}
-    };
-
-    workerconnhandler wrk;
+    bool stop;
+    int sock;
+    struct sockaddr_in sa_local;
+    std::mutex mtx;
+    std::queue<D> message_queue;
+    std::condition_variable data_cond;
 
 public:
+    void EnqueMsg(const D &data);
+    worker<D> &operator << (const D &data);
+    typename worker<D>::HANDLE_RES HandleMsg(const D &data);
+    void MainLoop();
+
     netconnectionhandler(){}
     worker<D>& GetWorker();
 };
 
 template<class D>
-worker<D>& netconnectionhandler<D>::GetWorker()
-{
-    return wrk;
-}
-
-template<class D>
-netconnectionhandler<D>::workerconnhandler::workerconnhandler()
-{
-}
-
-template<class D>
-worker<D> &netconnectionhandler<D>::workerconnhandler::operator <<(const D &data)
+worker<D> &netconnectionhandler<D>::operator <<(const D &data)
 {
 
     std::lock_guard<std::mutex> lk(mtx);
@@ -58,7 +38,7 @@ worker<D> &netconnectionhandler<D>::workerconnhandler::operator <<(const D &data
 }
 
 template<class D>
-void netconnectionhandler<D>::workerconnhandler::EnqueMsg(const D &data)
+void netconnectionhandler<D>::EnqueMsg(const D &data)
 {
 
     std::lock_guard<std::mutex> lk(mtx);
@@ -67,14 +47,14 @@ void netconnectionhandler<D>::workerconnhandler::EnqueMsg(const D &data)
 }
 
 template<class D>
-typename worker<D>::HANDLE_RES netconnectionhandler<D>::workerconnhandler::HandleMsg(const D &data)
+typename worker<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(const D &data)
 {
     std::cout << "netconnectionhandler received a message" << std::endl;
     return worker<D>::HANDLE_FAILED;
 }
 
 template<class D>
-void netconnectionhandler<D>::workerconnhandler::MainLoop()
+void netconnectionhandler<D>::MainLoop()
 {
     while(!stop)
     {

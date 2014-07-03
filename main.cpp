@@ -20,7 +20,7 @@ void starter(NETLISTENER_TYPE_REF cls, MAINLOOP_TYPE_PTR mth)
 int main()
 {
     netconnectionhandler<MESSAGE_TYPE> wrk;
-    netlistener<MESSAGE_TYPE> netlisten(wrk.GetWorker());
+    netlistener<MESSAGE_TYPE> netlisten(wrk);
 //    MAINLOOP_TYPE_PTR main_loop = &netlistener<MESSAGE_TYPE>::MainLoop;
     std::function<void(NETLISTENER_TYPE_REF)> start_func = &netlistener<MESSAGE_TYPE>::MainLoop;
     std::thread main_thrd(start_func, netlisten);
