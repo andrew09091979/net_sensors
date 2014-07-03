@@ -10,63 +10,26 @@
 template <class D>
 class WorkerDisplay : public worker<D>
 {
-    std::queue<D> data_q;
-    std::mutex mtx;
-    std::condition_variable cond;
-    bool stop;
 public:
     WorkerDisplay();
-    void EnqueMsg(const D &data);
-    virtual worker<D> &operator <<(const D &data);
-    void MainLoop();
-    int HandleMsg(const D &data);
+    typename worker<D>::HANDLE_RES HandleMsg(const D &data);
     virtual ~WorkerDisplay();
 };
 
 template<class D>
-WorkerDisplay<D>::WorkerDisplay() : stop(false)
+WorkerDisplay<D>::WorkerDisplay()
 {
 }
 
 template<class D>
-void WorkerDisplay<D>::EnqueMsg(const D &data)
+typename worker<D>::HANDLE_RES WorkerDisplay<D>::HandleMsg(const D &data)
 {
-    std::lock_guard<std::mutex> grd(mtx);
-    data_q.push(data);
-    cond.notify_one();
-}
+    typename worker<D>::HANDLE_RES res = worker<D>::HANDLE_OK;
 
-template<class D>
-worker<D>& WorkerDisplay<D>::operator <<(const D &data)
-{
-    this->EnqueMsg(data);
-    return *this;
-}
+    std::cout << std::string(data) << std::endl;
 
-template<class D>
-void WorkerDisplay<D>::MainLoop()
-{
-    while (!stop)
-    {
-        std::unique_lock<std::mutex> lk(mtx);
-        cond.wait(lk, [this]{return !data_q.empty();});
-        D data = data_q.front();
-        data_q.pop();
-        lk.unlock();
-        HandleMsg(data);
-    }
-    std::cout << "MainLoop finished" << std::endl;
-}
-
-template<class D>
-int WorkerDisplay<D>::HandleMsg(const D &data)
-{
-    int res = 0;
-
-    std::cout << data << std::endl;
-
-    if (data == 33)
-        stop = true;
+    if (data == -1)
+        this->stop = true;
 
     return res;
 }

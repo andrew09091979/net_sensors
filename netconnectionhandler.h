@@ -1,6 +1,6 @@
 #ifndef NETCONNECTIONHANDLER_H
 #define NETCONNECTIONHANDLER_H
-#include <sys/socket.h>
+
 #include <mutex>
 #include <queue>
 #include <condition_variable>
@@ -9,62 +9,38 @@
 template<class D>
 class netconnectionhandler : public worker<D>
 {
-    bool stop;
+    typedef worker<D> WORKER;
+
     int sock;
-    struct sockaddr_in sa_local;
     std::mutex mtx;
     std::queue<D> message_queue;
     std::condition_variable data_cond;
+    WORKER * const wrk;
 
 public:
-    void EnqueMsg(const D &data);
-    worker<D> &operator << (const D &data);
     typename worker<D>::HANDLE_RES HandleMsg(const D &data);
-    void MainLoop();
-
-    netconnectionhandler(){}
-    worker<D>& GetWorker();
+    netconnectionhandler(WORKER * const wrk_) : wrk(wrk_){}
+    ~netconnectionhandler(){}
 };
-
-template<class D>
-worker<D> &netconnectionhandler<D>::operator <<(const D &data)
-{
-
-    std::lock_guard<std::mutex> lk(mtx);
-    message_queue.push(data);
-    data_cond.notify_one();
-
-    return *this;
-}
-
-template<class D>
-void netconnectionhandler<D>::EnqueMsg(const D &data)
-{
-
-    std::lock_guard<std::mutex> lk(mtx);
-    message_queue.push(data);
-    data_cond.notify_one();
-}
 
 template<class D>
 typename worker<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(const D &data)
 {
-    std::cout << "netconnectionhandler received a message" << std::endl;
-    return worker<D>::HANDLE_FAILED;
-}
+    sock = data;
+    std::string hello("Hello\n");
 
-template<class D>
-void netconnectionhandler<D>::MainLoop()
-{
-    while(!stop)
+    if (sock != -1)
     {
-        std::unique_lock<std::mutex> lk(mtx);
-        data_cond.wait(lk, [&]{return !message_queue.empty();});
-        D data=message_queue.front();
-        message_queue.pop();
-        lk.unlock();
-        HandleMsg(data);
+        *wrk << D(0, std::string("[netconnectionhandler] closing connection"));
+        send(sock, hello.c_str() , hello.length(), 0);
+        close(sock);
     }
+    else
+    {
+        *wrk << D(0, std::string("[netconnectionhandler] sock received = -1"));
+    }
+
+    return worker<D>::HANDLE_FAILED;
 }
 
 #endif // NETCONNECTIONHANDLER_H

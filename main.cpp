@@ -4,27 +4,47 @@
 #include "netlistener.h"
 #include "netconnectionhandler.h"
 #include "message.h"
+#include "workerdisplay.h"
 
 using namespace std;
 typedef message<int> MESSAGE_TYPE;
 //typedef void (netconnectionhandler<MESSAGE_TYPE>::workerconnhandler::*MAINLOOP_TYPE)();
 //typedef void (worker<MESSAGE_TYPE>::*MAINLOOP_TYPE)();
-typedef void (netlistener<MESSAGE_TYPE>::*MAINLOOP_TYPE_PTR)();
+//typedef void (netlistener<MESSAGE_TYPE>::*MAINLOOP_TYPE_PTR)();
 typedef netlistener<MESSAGE_TYPE>& NETLISTENER_TYPE_REF;
+typedef netlistener<MESSAGE_TYPE>* NETLISTENER_TYPE_PTR;
 
-void starter(NETLISTENER_TYPE_REF cls, MAINLOOP_TYPE_PTR mth)
+template <class D>
+class ref_wrapper
 {
-    (cls.*mth)();
-}
+    D &_d;
+public:
+    ref_wrapper(D &d) : _d(d)
+    {
+    }
+    void operator ()()
+    {
+        _d();
+    }
+};
 
 int main()
 {
-    netconnectionhandler<MESSAGE_TYPE> wrk;
-    netlistener<MESSAGE_TYPE> netlisten(wrk);
+    WorkerDisplay<MESSAGE_TYPE> display;
+    netconnectionhandler<MESSAGE_TYPE> wrk(&display);
+    netlistener<MESSAGE_TYPE> netlisten(&wrk);
+    netlisten.AddWorker(&display);
 //    MAINLOOP_TYPE_PTR main_loop = &netlistener<MESSAGE_TYPE>::MainLoop;
-    std::function<void(NETLISTENER_TYPE_REF)> start_func = &netlistener<MESSAGE_TYPE>::MainLoop;
-    std::thread main_thrd(start_func, netlisten);
+//    std::thread main_thrd;
+//    std::function<void(NETLISTENER_TYPE_REF)> start_func = &netlistener<MESSAGE_TYPE>::MainLoop;
+//    std::reference_wrapper(wrk);
+
+    std::thread conn_thrd = std::thread(ref_wrapper<worker<MESSAGE_TYPE>>(wrk));
+    std::thread main_thrd = std::thread(ref_wrapper<netlistener<MESSAGE_TYPE>>(netlisten));
+    std::thread disp_thrd = std::thread(ref_wrapper<WorkerDisplay<MESSAGE_TYPE>>(display));
+
+    conn_thrd.join();
     main_thrd.join();
+    disp_thrd.join();
     return 0;
 }
-

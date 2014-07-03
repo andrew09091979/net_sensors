@@ -13,23 +13,30 @@ template<class D>
 class netlistener
 {
     typedef worker<D> WORKER;
-    WORKER &wrk;
+    WORKER * const wrk;
+    std::vector<WORKER *> workers;
     int sockToListen, sock;
     bool stop;
 
 public:
-    netlistener(worker<D>& wrk_);
+    netlistener(WORKER * const wrk_);
+    void AddWorker(WORKER * const wrk_);
+    void RemoveWorker(WORKER * const wrk_);
     void MainLoop();
+
+    void operator()();
 };
 
 template<class D>
-netlistener<D>::netlistener(WORKER &wrk_) : wrk(wrk_)
+netlistener<D>::netlistener(WORKER * const wrk_) : wrk(wrk_), stop(false)
 {
+    workers.push_back(wrk);
+
     struct sockaddr_in addr;
     const int on = 1;
 
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(7502);
+    addr.sin_port = htons(7503);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     // create socket
@@ -64,23 +71,49 @@ netlistener<D>::netlistener(WORKER &wrk_) : wrk(wrk_)
 }
 
 template<class D>
+void netlistener<D>::AddWorker(WORKER * const wrk_)
+{
+    workers.push_back(wrk_);
+}
+
+template<class D>
+void netlistener<D>::RemoveWorker(WORKER * const wrk_)
+{
+//    workers.
+}
+
+template<class D>
 void netlistener<D>::MainLoop()
+{
+
+}
+
+template<class D>
+void netlistener<D>::operator()()
 {
     while (!stop)
     {
         struct sockaddr_in addr;
         size_t len = 0;
         memset(&addr, 0, sizeof(addr));
-        std::cout << "calling accept" << std::endl;
+
         sock = accept(sockToListen, (struct sockaddr*)&addr, &len);
+
+        typename std::vector<WORKER *>::iterator it = workers.begin();
 
         if (sock != -1)
         {
-            wrk << D(sock);
+            D msg = D(sock, std::string("[netlistener] Incoming connection"));
+
+            for(;it != workers.end(); ++it)
+                *(*it) << msg;
         }
         else
         {
-            std::cout << "accept returned -1" << std::endl;
+            D msg = D(-1, std::string("[netlistener] accept error"));
+
+            for(;it != workers.end(); ++it)
+                *(*it) << msg;
 
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
