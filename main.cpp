@@ -32,8 +32,8 @@ int main()
 {
     WorkerDisplay<MESSAGE_TYPE> display;
     netconnectionhandler<MESSAGE_TYPE> wrk(&display);
-    netlistener<MESSAGE_TYPE> netlisten(&wrk);
-    netlisten.AddWorker(&display);
+    netlistener<MESSAGE_TYPE> netlisten(&display);
+    netlisten.AddWorker(&wrk);
 //    MAINLOOP_TYPE_PTR main_loop = &netlistener<MESSAGE_TYPE>::MainLoop;
 //    std::thread main_thrd;
 //    std::function<void(NETLISTENER_TYPE_REF)> start_func = &netlistener<MESSAGE_TYPE>::MainLoop;

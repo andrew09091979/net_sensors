@@ -14,5 +14,6 @@ HEADERS += \
     netlistener.h \
     netconnectionhandler.h \
     message.h \
-    worker.h
+    worker.h \
+    clientservice.h
 

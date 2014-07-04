@@ -17,7 +17,7 @@ class netlistener
     std::vector<WORKER *> workers;
     int sockToListen, sock;
     bool stop;
-
+    void notify_all(const D &msg);
 public:
     netlistener(WORKER * const wrk_);
     void AddWorker(WORKER * const wrk_);
@@ -52,21 +52,25 @@ netlistener<D>::netlistener(WORKER * const wrk_) : wrk(wrk_), stop(false)
             // change socket's state to LISTEN
             if (listen(sockToListen, 5) != -1)
             {
-                std::cout << "sockToListen successfully turned to listening mode" << std::endl;
+                D msg = D(0, std::string("[netlistener] listening mode started"));
+                notify_all(msg);
             }
             else
             {
-                std::cout << "listen error" << std::endl;
+                D msg = D(-1, std::string("[netlistener] listen error"));
+                notify_all(msg);
             }
         }
         else
         {
-            std::cout << "bind error" << std::endl;
+            D msg = D(-1, std::string("[netlistener] bind error"));
+            notify_all(msg);
         }
     }
     else
     {
-        std::cout << "socket creation error" << std::endl;
+        D msg = D(-1, std::string("[netlistener] socket creation error"));
+        notify_all(msg);
     }
 }
 
@@ -99,21 +103,15 @@ void netlistener<D>::operator()()
 
         sock = accept(sockToListen, (struct sockaddr*)&addr, &len);
 
-        typename std::vector<WORKER *>::iterator it = workers.begin();
-
         if (sock != -1)
         {
             D msg = D(sock, std::string("[netlistener] Incoming connection"));
-
-            for(;it != workers.end(); ++it)
-                *(*it) << msg;
+            notify_all(msg);
         }
         else
         {
             D msg = D(-1, std::string("[netlistener] accept error"));
-
-            for(;it != workers.end(); ++it)
-                *(*it) << msg;
+            notify_all(msg);
 
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
@@ -125,6 +123,15 @@ void netlistener<D>::operator()()
             }
         }
     }
+}
+
+template<class D>
+void netlistener<D>::notify_all(const D &msg)
+{
+    typename std::vector<WORKER *>::iterator it = workers.begin();
+
+    for(;it != workers.end(); ++it)
+        *(*it) << msg;
 }
 
 #endif // NETLISTENER_H

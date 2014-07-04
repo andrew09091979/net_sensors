@@ -4,7 +4,9 @@
 #include <mutex>
 #include <queue>
 #include <condition_variable>
+#include <thread>
 #include "worker.h"
+#include "clientservice.h"
 
 template<class D>
 class netconnectionhandler : public worker<D>
@@ -12,9 +14,6 @@ class netconnectionhandler : public worker<D>
     typedef worker<D> WORKER;
 
     int sock;
-    std::mutex mtx;
-    std::queue<D> message_queue;
-    std::condition_variable data_cond;
     WORKER * const wrk;
 
 public:
@@ -27,13 +26,13 @@ template<class D>
 typename worker<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(const D &data)
 {
     sock = data;
-    std::string hello("Hello\n");
 
     if (sock != -1)
     {
-        *wrk << D(0, std::string("[netconnectionhandler] closing connection"));
-        send(sock, hello.c_str() , hello.length(), 0);
-        close(sock);
+        clientservice<D> cs = clientservice<D>(sock, wrk);
+        std::thread thr(cs);
+        *wrk << D(0, std::string("[netconnectionhandler] starting clientservice"));
+        thr.detach();
     }
     else
     {
