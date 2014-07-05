@@ -6,30 +6,28 @@
 #include <queue>
 #include <iostream>
 #include "worker.h"
+#include "internlmsg.h"
 
 template <class D>
 class WorkerDisplay : public worker<D>
 {
 public:
     WorkerDisplay();
-    typename worker<D>::HANDLE_RES HandleMsg(const D &data);
+    typename worker<D>::HANDLE_RES HandleMsg(D data);
     virtual ~WorkerDisplay();
 };
 
 template<class D>
-WorkerDisplay<D>::WorkerDisplay()
+WorkerDisplay<D>::WorkerDisplay() : worker<D>(INTNLMSG::RECV_DISPLAY)
 {
 }
 
 template<class D>
-typename worker<D>::HANDLE_RES WorkerDisplay<D>::HandleMsg(const D &data)
+typename worker<D>::HANDLE_RES WorkerDisplay<D>::HandleMsg(D data)
 {
     typename worker<D>::HANDLE_RES res = worker<D>::HANDLE_OK;
 
-    std::cout << std::string(data) << std::endl;
-
-    if (data == -1)
-        this->stop = true;
+    std::cout << data.getmsg() << std::endl;
 
     return res;
 }

@@ -5,11 +5,17 @@
 #include <vector>
 #include <cstring>
 #include "worker.h"
+#include "internlmsg.h"
+#include "internlmsgsender.h"
 
 template<class D>
-class clientservice
+class clientservice : public internlmsgsender<D>
 {
     typedef worker<D> WORKER;
+    const char * waiting_for_answer;
+    const char * sending_hello;
+    const char * answer_received;
+    const char * closing_conn;
 
     enum STATE
     {
@@ -28,8 +34,6 @@ class clientservice
     STATE state;
     int sock;
     bool stop;
-    std::vector<WORKER *> workers;
-    void notify_all(const D &msg);
 
 public:
    clientservice(int sock_, WORKER * wrk_);
@@ -37,15 +41,20 @@ public:
 };
 
 template<class D>
-clientservice<D>::clientservice(int sock_, WORKER * wrk_) : state(INITIAL), sock(sock_)
+clientservice<D>::clientservice(int sock_, WORKER * wrk_) : internlmsgsender<D>(wrk_), state(INITIAL), sock(sock_),
+                                                            waiting_for_answer("[clientservice] waiting for answer"),
+                                                            sending_hello("[clientservice] sending hello"),
+                                                            answer_received("[clientservice] answer received: "),
+                                                            closing_conn("[clientservice] closing connection")
 {
-    workers.push_back(wrk_);
+    this->workers.push_back(wrk_);
 }
 
 template<class D>
 void clientservice<D>::operator()()
 {
     char chBfr[100];
+
     while(!stop)
     {
         switch (state)
@@ -53,8 +62,9 @@ void clientservice<D>::operator()()
             case INITIAL:
             {
                 int res = 0;
-                D msg = D(0, std::string("[clientservice] sending hello"));
-                notify_all(msg);
+                D msg = D(INTNLMSG::RECV_DISPLAY, strlen(sending_hello),
+                          0, std::move(std::string(sending_hello)));
+                send_internl_msg(std::move(msg));
                 std::string hello("hello!\n");
                 res = send(sock, hello.c_str() , hello.length(), 0);
                 state = WAITING_FOR_ANSWER;
@@ -63,20 +73,22 @@ void clientservice<D>::operator()()
 
             case WAITING_FOR_ANSWER:
             {
-                D msg = D(0, std::string("[clientservice] waiting for answer"));
-                notify_all(msg);
+                D msg = D(INTNLMSG::RECV_DISPLAY, strlen(waiting_for_answer),
+                          0, std::move(std::string(waiting_for_answer)));
+                send_internl_msg(std::move(msg));
                 memset(chBfr, 0, 2);
                 recv(sock, chBfr, 2, 0);
-                msg = D(0, std::string("[clientservice] received message:") +
-                            std::string(chBfr));
-                notify_all(msg);
+                msg.setsize(strlen(answer_received));
+                msg.setmsg(std::move(std::string(answer_received)));
+                send_internl_msg(std::move(msg));
                 state = CLOSE;
             }
             break;
             case CLOSE:
             {
-                D msg = D(0, std::string("[clientservice] closing connection"));
-                notify_all(msg);
+                D msg = D(INTNLMSG::RECV_DISPLAY, strlen(closing_conn),
+                          0, std::move(std::string(closing_conn)));
+                send_internl_msg(std::move(msg));
                 close(sock);
                 stop = true;
             }
@@ -85,14 +97,5 @@ void clientservice<D>::operator()()
             break;
         }
     }
-}
-
-template<class D>
-void clientservice<D>::notify_all(const D &msg)
-{
-    typename std::vector<WORKER *>::iterator it = workers.begin();
-
-    for(;it != workers.end(); ++it)
-        *(*it) << msg;
 }
 #endif // CLIENTSERVICE_H

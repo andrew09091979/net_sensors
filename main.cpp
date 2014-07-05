@@ -5,9 +5,12 @@
 #include "netconnectionhandler.h"
 #include "message.h"
 #include "workerdisplay.h"
+#include "internlmsgsender.h"
+#include "internlmsg.h"
 
 using namespace std;
-typedef message<int> MESSAGE_TYPE;
+//typedef message<int> MESSAGE_TYPE;
+typedef internlmsg MESSAGE_TYPE;
 //typedef void (netconnectionhandler<MESSAGE_TYPE>::workerconnhandler::*MAINLOOP_TYPE)();
 //typedef void (worker<MESSAGE_TYPE>::*MAINLOOP_TYPE)();
 //typedef void (netlistener<MESSAGE_TYPE>::*MAINLOOP_TYPE_PTR)();
@@ -33,7 +36,7 @@ int main()
     WorkerDisplay<MESSAGE_TYPE> display;
     netconnectionhandler<MESSAGE_TYPE> wrk(&display);
     netlistener<MESSAGE_TYPE> netlisten(&display);
-    netlisten.AddWorker(&wrk);
+    netlisten.add_worker(&wrk);
 //    MAINLOOP_TYPE_PTR main_loop = &netlistener<MESSAGE_TYPE>::MainLoop;
 //    std::thread main_thrd;
 //    std::function<void(NETLISTENER_TYPE_REF)> start_func = &netlistener<MESSAGE_TYPE>::MainLoop;

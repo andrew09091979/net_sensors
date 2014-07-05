@@ -3,7 +3,8 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    internlmsg.cpp
 
 QMAKE_CXXFLAGS += -std=c++0x
 
@@ -15,5 +16,7 @@ HEADERS += \
     netconnectionhandler.h \
     message.h \
     worker.h \
-    clientservice.h
+    clientservice.h \
+    internlmsg.h \
+    internlmsgsender.h
 

@@ -5,6 +5,7 @@
 #include <queue>
 #include <condition_variable>
 #include <iostream>
+#include "internlmsg.h"
 
 template <class D>
 class worker
@@ -16,18 +17,19 @@ protected:
         HANDLE_FAILED
     };
 
+    const INTNLMSG::RECEIVER iam;
     std::mutex mtx;
     std::queue<D> message_queue;
     std::condition_variable data_cond;
     bool stop;
 
 public:
-    worker() : stop(false){}
-    void EnqueMsg(const D &data);
+    worker(INTNLMSG::RECEIVER iam_) : iam(iam_), stop(false){}
+    void EnqueMsg(D data);
     worker<D> &operator <<(const D &data);
     void MainLoop();
     virtual void operator ()();
-    virtual HANDLE_RES HandleMsg(const D &data) = 0;
+    virtual HANDLE_RES HandleMsg(D data) = 0;
     virtual ~worker(){}
 };
 
@@ -35,17 +37,17 @@ template<class D>
 worker<D> &worker<D>::operator <<(const D &data)
 {
     std::lock_guard<std::mutex> lk(mtx);
-    message_queue.push(data);
+    message_queue.push(std::move(data));
     data_cond.notify_one();
 
     return *this;
 }
 
 template<class D>
-void worker<D>::EnqueMsg(const D &data)
+void worker<D>::EnqueMsg(D data)
 {
     std::lock_guard<std::mutex> lk(mtx);
-    message_queue.push(data);
+    message_queue.push(std::move(data));
     data_cond.notify_one();
 }
 
@@ -59,7 +61,9 @@ void worker<D>::MainLoop()
         D data=message_queue.front();
         message_queue.pop();
         lk.unlock();
-        HandleMsg(data);
+
+        if (data.getrecv == iam)
+            HandleMsg(data);
     }
 }
 
@@ -70,10 +74,12 @@ void worker<D>::operator ()()
     {
         std::unique_lock<std::mutex> lk(mtx);
         data_cond.wait(lk, [&]{return !message_queue.empty();});
-        D data=message_queue.front();
+        D data(std::move(message_queue.front()));
         message_queue.pop();
         lk.unlock();
-        HandleMsg(data);
+
+        if (data.getreceiver() == iam)
+            HandleMsg(std::move(data));
     }
 }
 

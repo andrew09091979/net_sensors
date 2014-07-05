@@ -8,30 +8,43 @@
 #include <iostream>
 #include <vector>
 #include "worker.h"
+#include "internlmsg.h"
+#include "internlmsgsender.h"
 
 template<class D>
-class netlistener
+class netlistener : public internlmsgsender<D>
 {
     typedef worker<D> WORKER;
-    WORKER * const wrk;
-    std::vector<WORKER *> workers;
+    const INTNLMSG::RECEIVER iam;
+    const char * incoming_conn;
+    const char * listen_started;
+    const char * listen_error;
+    const char * bind_error;
+    const char * sock_creation_error;
+    const char * accept_error;
+//    WORKER * const wrk;
+//    std::vector<WORKER *> workers;
     int sockToListen, sock;
     bool stop;
-    void notify_all(const D &msg);
+
 public:
     netlistener(WORKER * const wrk_);
-    void AddWorker(WORKER * const wrk_);
-    void RemoveWorker(WORKER * const wrk_);
     void MainLoop();
 
     void operator()();
 };
 
 template<class D>
-netlistener<D>::netlistener(WORKER * const wrk_) : wrk(wrk_), stop(false)
+netlistener<D>::netlistener(WORKER * const wrk_) : internlmsgsender<D>(wrk_),
+                                                    iam(INTNLMSG::RECV_NETLISTENER),
+                                                    incoming_conn("[netlistener] incoming connection"),
+                                                    listen_started("[netlistener] listening mode started"),
+                                                    listen_error("[netlistener] listen error"),
+                                                    bind_error("[netlistener] bind error"),
+                                                    sock_creation_error("[netlistener] socket creation error"),
+                                                    accept_error("[netlistener] accept error"),
+                                                    stop(false)
 {
-    workers.push_back(wrk);
-
     struct sockaddr_in addr;
     const int on = 1;
 
@@ -52,38 +65,30 @@ netlistener<D>::netlistener(WORKER * const wrk_) : wrk(wrk_), stop(false)
             // change socket's state to LISTEN
             if (listen(sockToListen, 5) != -1)
             {
-                D msg = D(0, std::string("[netlistener] listening mode started"));
-                notify_all(msg);
+                D msg = D(INTNLMSG::RECV_DISPLAY, strlen(listen_started),
+                          0, std::move(std::string(listen_started)));
+                send_internl_msg(std::move(msg));
             }
             else
             {
-                D msg = D(-1, std::string("[netlistener] listen error"));
-                notify_all(msg);
+                D msg = D(INTNLMSG::RECV_DISPLAY, strlen(listen_started),
+                          0, std::move(std::string(listen_error)));
+                send_internl_msg(std::move(msg));
             }
         }
         else
         {
-            D msg = D(-1, std::string("[netlistener] bind error"));
-            notify_all(msg);
+            D msg = D(INTNLMSG::RECV_DISPLAY, strlen(listen_started),
+                      0, std::move(std::string(bind_error)));
+            send_internl_msg(std::move(msg));
         }
     }
     else
     {
-        D msg = D(-1, std::string("[netlistener] socket creation error"));
-        notify_all(msg);
+        D msg = D(INTNLMSG::RECV_DISPLAY, strlen(listen_started),
+                  0, std::move(std::string(sock_creation_error)));
+        send_internl_msg(std::move(msg));
     }
-}
-
-template<class D>
-void netlistener<D>::AddWorker(WORKER * const wrk_)
-{
-    workers.push_back(wrk_);
-}
-
-template<class D>
-void netlistener<D>::RemoveWorker(WORKER * const wrk_)
-{
-//    workers.
 }
 
 template<class D>
@@ -105,13 +110,17 @@ void netlistener<D>::operator()()
 
         if (sock != -1)
         {
-            D msg = D(sock, std::string("[netlistener] Incoming connection"));
-            notify_all(msg);
+            D msg = D(INTNLMSG::RECV_DISPLAY, strlen(incoming_conn), 0, std::string(incoming_conn));
+            send_internl_msg(std::move(msg));
+
+            D msg1 = D(INTNLMSG::RECV_NETCONNHANDLER, strlen(incoming_conn),
+                       sock, std::string(incoming_conn));
+            send_internl_msg(std::move(msg1));
         }
         else
         {
-            D msg = D(-1, std::string("[netlistener] accept error"));
-            notify_all(msg);
+            D msg = D(INTNLMSG::RECV_DISPLAY, 10, 0, accept_error);
+            send_internl_msg(std::move(msg));
 
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
@@ -123,15 +132,6 @@ void netlistener<D>::operator()()
             }
         }
     }
-}
-
-template<class D>
-void netlistener<D>::notify_all(const D &msg)
-{
-    typename std::vector<WORKER *>::iterator it = workers.begin();
-
-    for(;it != workers.end(); ++it)
-        *(*it) << msg;
 }
 
 #endif // NETLISTENER_H
