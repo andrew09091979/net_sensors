@@ -13,14 +13,13 @@ internlmsg::internlmsg(INTNLMSG::RECEIVER recv_, unsigned int size_,
 
 }
 
-internlmsg::internlmsg(INTNLMSG::RECEIVER recv_, unsigned int size_,
-                        unsigned int val_, std::string msg_) :
-                      recv(recv_), size(size_), val(val_)
+internlmsg::internlmsg(INTNLMSG::RECEIVER recv_, unsigned int val_, std::string msg_) :
+                                                                                recv(recv_), val(val_)
 {
-    unsigned int len = msg_.length() + 1;
-    msg = new char[len];
-    memset(msg, 0, len);
-    memcpy(msg, msg_.c_str(), len);
+    size = msg_.length() + 1;
+    msg = new char[size];
+    memset(msg, 0, size);
+    memcpy(msg, msg_.c_str(), size);
 }
 
 internlmsg::internlmsg(internlmsg&& oth) : recv(oth.recv), size(oth.size),
@@ -85,8 +84,8 @@ void internlmsg::setmsg(char * const msg_)
 
 void internlmsg::setmsg(std::string msg_)
 {
-    unsigned int len = msg_.length() + 1;
-    msg = new char[len];
-    memset(msg, 0, len);
-    memcpy(msg, msg_.c_str(), len);
+    size = msg_.length() + 1;
+    msg = new char[size];
+    memset(msg, 0, size);
+    memcpy(msg, msg_.c_str(), size);
 }

@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <vector>
 #include <cstring>
+#include "modulemanager.h"
 #include "internlmsgreceiver.h"
 #include "internlmsg.h"
 #include "internlmsgsender.h"
@@ -16,7 +17,7 @@ class clientservice : public internlmsgsender<D>
     const char * sending_hello;
     const char * answer_received;
     const char * closing_conn;
-
+    const modulemanager<D> * const mod_mgr;
     enum STATE
     {
         INITIAL,
@@ -36,17 +37,22 @@ class clientservice : public internlmsgsender<D>
     bool stop;
 
 public:
-   clientservice(int sock_, WORKER * wrk_);
+   clientservice(int sock_, const modulemanager<D> * const mod_mgr_);
    void operator()();
 };
 
 template<class D>
-clientservice<D>::clientservice(int sock_, WORKER * wrk_) : internlmsgsender<D>(wrk_), state(INITIAL), sock(sock_),
+clientservice<D>::clientservice(int sock_, const modulemanager<D> * const mod_mgr_) :
+                                                            mod_mgr(mod_mgr_),
+                                                            state(INITIAL), sock(sock_),
                                                             waiting_for_answer("[clientservice] waiting for answer"),
                                                             sending_hello("[clientservice] sending hello"),
                                                             answer_received("[clientservice] answer received: "),
                                                             closing_conn("[clientservice] closing connection")
 {
+    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
+    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
+    mod_mgr->get_receivers(receivers_to_get, this->workers);
 }
 
 template<class D>
@@ -61,8 +67,7 @@ void clientservice<D>::operator()()
             case INITIAL:
             {
                 int res = 0;
-                D msg = D(INTNLMSG::RECV_DISPLAY, strlen(sending_hello),
-                          0, std::move(std::string(sending_hello)));
+                D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(sending_hello)));
                 send_internl_msg(std::move(msg));
                 std::string hello("hello!\n");
                 res = send(sock, hello.c_str() , hello.length(), 0);
@@ -72,21 +77,18 @@ void clientservice<D>::operator()()
 
             case WAITING_FOR_ANSWER:
             {
-                D msg = D(INTNLMSG::RECV_DISPLAY, strlen(waiting_for_answer),
-                          0, std::move(std::string(waiting_for_answer)));
+                D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(waiting_for_answer)));
                 send_internl_msg(std::move(msg));
                 memset(chBfr, 0, 2);
                 recv(sock, chBfr, 2, 0);
-                msg.setsize(strlen(answer_received));
-                msg.setmsg(std::move(std::string(answer_received)));
+                msg.setmsg(std::move(std::string(answer_received) + std::string(chBfr)));
                 send_internl_msg(std::move(msg));
                 state = CLOSE;
             }
             break;
             case CLOSE:
             {
-                D msg = D(INTNLMSG::RECV_DISPLAY, strlen(closing_conn),
-                          0, std::move(std::string(closing_conn)));
+                D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(closing_conn)));
                 send_internl_msg(std::move(msg));
                 close(sock);
                 stop = true;

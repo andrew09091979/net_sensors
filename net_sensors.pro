@@ -18,5 +18,6 @@ HEADERS += \
     clientservice.h \
     internlmsg.h \
     internlmsgsender.h \
-    internlmsgreceiver.h
+    internlmsgreceiver.h \
+    modulemanager.h
 

@@ -7,6 +7,7 @@
 #include "workerdisplay.h"
 #include "internlmsgsender.h"
 #include "internlmsg.h"
+#include "modulemanager.h"
 
 using namespace std;
 //typedef message<int> MESSAGE_TYPE;
@@ -33,10 +34,12 @@ public:
 
 int main()
 {
+    modulemanager<MESSAGE_TYPE> module_mgr;
     WorkerDisplay<MESSAGE_TYPE> display;
-    netconnectionhandler<MESSAGE_TYPE> wrk(&display);
-    netlistener<MESSAGE_TYPE> netlisten(&display);
-    netlisten.add_worker(&wrk);
+    module_mgr.register_receiver(&display);
+    netconnectionhandler<MESSAGE_TYPE> wrk(&module_mgr);
+    module_mgr.register_receiver(&wrk);
+    netlistener<MESSAGE_TYPE> netlisten(&module_mgr);
 //    MAINLOOP_TYPE_PTR main_loop = &netlistener<MESSAGE_TYPE>::MainLoop;
 //    std::thread main_thrd;
 //    std::function<void(NETLISTENER_TYPE_REF)> start_func = &netlistener<MESSAGE_TYPE>::MainLoop;

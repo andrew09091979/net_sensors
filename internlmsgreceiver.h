@@ -30,6 +30,7 @@ public:
     void MainLoop();
     virtual void operator ()();
     virtual HANDLE_RES HandleMsg(D data) = 0;
+    INTNLMSG::RECEIVER get_type() const;
     virtual ~internlmsgreceiver(){}
 };
 
@@ -82,5 +83,12 @@ void internlmsgreceiver<D>::operator ()()
             HandleMsg(std::move(data));
     }
 }
+
+template<class D>
+INTNLMSG::RECEIVER internlmsgreceiver<D>::get_type() const
+{
+    return iam;
+}
+
 
 #endif // WORKER_H

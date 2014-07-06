@@ -10,7 +10,7 @@ protected:
     std::vector<WORKER *> workers;
 
 public:
-    internlmsgsender(WORKER *wrk_);
+    internlmsgsender();
 
     void send_internl_msg(D msg);
     void add_worker(WORKER * const wrk_);
@@ -18,9 +18,8 @@ public:
 };
 
 template<class D>
-internlmsgsender<D>::internlmsgsender(WORKER *wrk_)
+internlmsgsender<D>::internlmsgsender()
 {
-    workers.push_back(wrk_);
 }
 
 template<class D>

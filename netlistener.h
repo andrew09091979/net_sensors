@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <iostream>
 #include <vector>
+#include "modulemanager.h"
 #include "internlmsgreceiver.h"
 #include "internlmsg.h"
 #include "internlmsgsender.h"
@@ -16,27 +17,27 @@ class netlistener : public internlmsgsender<D>
 {
     typedef internlmsgreceiver<D> WORKER;
     const INTNLMSG::RECEIVER iam;
+    const modulemanager<D> * const mod_mgr;
     const char * incoming_conn;
     const char * listen_started;
     const char * listen_error;
     const char * bind_error;
     const char * sock_creation_error;
     const char * accept_error;
-//    WORKER * const wrk;
-//    std::vector<WORKER *> workers;
     int sockToListen, sock;
     bool stop;
 
 public:
-    netlistener(WORKER * const wrk_);
+    netlistener(const modulemanager<D> * const mod_mgr_);
     void MainLoop();
 
     void operator()();
 };
 
 template<class D>
-netlistener<D>::netlistener(WORKER * const wrk_) : internlmsgsender<D>(wrk_),
+netlistener<D>::netlistener(const modulemanager<D> * const mod_mgr_) :
                                                     iam(INTNLMSG::RECV_NETLISTENER),
+                                                    mod_mgr(mod_mgr_),
                                                     incoming_conn("[netlistener] incoming connection"),
                                                     listen_started("[netlistener] listening mode started"),
                                                     listen_error("[netlistener] listen error"),
@@ -45,9 +46,13 @@ netlistener<D>::netlistener(WORKER * const wrk_) : internlmsgsender<D>(wrk_),
                                                     accept_error("[netlistener] accept error"),
                                                     stop(false)
 {
+    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
+    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
+    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_NETCONNHANDLER);
+    mod_mgr->get_receivers(receivers_to_get, this->workers);
+
     struct sockaddr_in addr;
     const int on = 1;
-
     addr.sin_family = AF_INET;
     addr.sin_port = htons(7503);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -65,28 +70,24 @@ netlistener<D>::netlistener(WORKER * const wrk_) : internlmsgsender<D>(wrk_),
             // change socket's state to LISTEN
             if (listen(sockToListen, 5) != -1)
             {
-                D msg = D(INTNLMSG::RECV_DISPLAY, strlen(listen_started),
-                          0, std::move(std::string(listen_started)));
+                D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(listen_started)));
                 send_internl_msg(std::move(msg));
             }
             else
             {
-                D msg = D(INTNLMSG::RECV_DISPLAY, strlen(listen_started),
-                          0, std::move(std::string(listen_error)));
+                D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(listen_error)));
                 send_internl_msg(std::move(msg));
             }
         }
         else
         {
-            D msg = D(INTNLMSG::RECV_DISPLAY, strlen(listen_started),
-                      0, std::move(std::string(bind_error)));
+            D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(bind_error)));
             send_internl_msg(std::move(msg));
         }
     }
     else
     {
-        D msg = D(INTNLMSG::RECV_DISPLAY, strlen(listen_started),
-                  0, std::move(std::string(sock_creation_error)));
+        D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(sock_creation_error)));
         send_internl_msg(std::move(msg));
     }
 }
@@ -110,16 +111,15 @@ void netlistener<D>::operator()()
 
         if (sock != -1)
         {
-            D msg = D(INTNLMSG::RECV_DISPLAY, strlen(incoming_conn), 0, std::string(incoming_conn));
+            D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::string(incoming_conn));
             send_internl_msg(std::move(msg));
 
-            D msg1 = D(INTNLMSG::RECV_NETCONNHANDLER, strlen(incoming_conn),
-                       sock, std::string(incoming_conn));
+            D msg1 = D(INTNLMSG::RECV_NETCONNHANDLER, sock, std::string(incoming_conn));
             send_internl_msg(std::move(msg1));
         }
         else
         {
-            D msg = D(INTNLMSG::RECV_DISPLAY, 10, 0, accept_error);
+            D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::string(accept_error));
             send_internl_msg(std::move(msg));
 
             if (errno == EAGAIN || errno == EWOULDBLOCK)

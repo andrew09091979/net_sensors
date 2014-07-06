@@ -26,8 +26,7 @@ public:
     internlmsg();
     internlmsg(INTNLMSG::RECEIVER recv_, unsigned int size_,
                unsigned int val_, char *msg_);
-    internlmsg(INTNLMSG::RECEIVER recv_, unsigned int size_,
-               unsigned int val_, std::string msg_);
+    internlmsg(INTNLMSG::RECEIVER recv_, unsigned int val_, std::string msg_);
     internlmsg(internlmsg&& oth);
     internlmsg(const internlmsg& oth);
     ~internlmsg();

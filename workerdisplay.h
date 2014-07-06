@@ -5,6 +5,7 @@
 #include <mutex>
 #include <queue>
 #include <iostream>
+#include "modulemanager.h"
 #include "internlmsgreceiver.h"
 #include "internlmsg.h"
 
