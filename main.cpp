@@ -12,7 +12,7 @@ using namespace std;
 //typedef message<int> MESSAGE_TYPE;
 typedef internlmsg MESSAGE_TYPE;
 //typedef void (netconnectionhandler<MESSAGE_TYPE>::workerconnhandler::*MAINLOOP_TYPE)();
-//typedef void (worker<MESSAGE_TYPE>::*MAINLOOP_TYPE)();
+//typedef void (internlmsgreceiver<MESSAGE_TYPE>::*MAINLOOP_TYPE)();
 //typedef void (netlistener<MESSAGE_TYPE>::*MAINLOOP_TYPE_PTR)();
 typedef netlistener<MESSAGE_TYPE>& NETLISTENER_TYPE_REF;
 typedef netlistener<MESSAGE_TYPE>* NETLISTENER_TYPE_PTR;
@@ -42,7 +42,7 @@ int main()
 //    std::function<void(NETLISTENER_TYPE_REF)> start_func = &netlistener<MESSAGE_TYPE>::MainLoop;
 //    std::reference_wrapper(wrk);
 
-    std::thread conn_thrd = std::thread(ref_wrapper<worker<MESSAGE_TYPE>>(wrk));
+    std::thread conn_thrd = std::thread(ref_wrapper<internlmsgreceiver<MESSAGE_TYPE>>(wrk));
     std::thread main_thrd = std::thread(ref_wrapper<netlistener<MESSAGE_TYPE>>(netlisten));
     std::thread disp_thrd = std::thread(ref_wrapper<WorkerDisplay<MESSAGE_TYPE>>(display));
 

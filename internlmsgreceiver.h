@@ -8,7 +8,7 @@
 #include "internlmsg.h"
 
 template <class D>
-class worker
+class internlmsgreceiver
 {
 protected:
     enum HANDLE_RES
@@ -24,17 +24,17 @@ protected:
     bool stop;
 
 public:
-    worker(INTNLMSG::RECEIVER iam_) : iam(iam_), stop(false){}
+    internlmsgreceiver(INTNLMSG::RECEIVER iam_) : iam(iam_), stop(false){}
     void EnqueMsg(D data);
-    worker<D> &operator <<(const D &data);
+    internlmsgreceiver<D> &operator <<(const D &data);
     void MainLoop();
     virtual void operator ()();
     virtual HANDLE_RES HandleMsg(D data) = 0;
-    virtual ~worker(){}
+    virtual ~internlmsgreceiver(){}
 };
 
 template<class D>
-worker<D> &worker<D>::operator <<(const D &data)
+internlmsgreceiver<D> &internlmsgreceiver<D>::operator <<(const D &data)
 {
     std::lock_guard<std::mutex> lk(mtx);
     message_queue.push(std::move(data));
@@ -44,7 +44,7 @@ worker<D> &worker<D>::operator <<(const D &data)
 }
 
 template<class D>
-void worker<D>::EnqueMsg(D data)
+void internlmsgreceiver<D>::EnqueMsg(D data)
 {
     std::lock_guard<std::mutex> lk(mtx);
     message_queue.push(std::move(data));
@@ -52,7 +52,7 @@ void worker<D>::EnqueMsg(D data)
 }
 
 template<class D>
-void worker<D>::MainLoop()
+void internlmsgreceiver<D>::MainLoop()
 {
     while(!stop)
     {
@@ -68,7 +68,7 @@ void worker<D>::MainLoop()
 }
 
 template<class D>
-void worker<D>::operator ()()
+void internlmsgreceiver<D>::operator ()()
 {
     while(!stop)
     {

@@ -15,8 +15,8 @@ HEADERS += \
     netlistener.h \
     netconnectionhandler.h \
     message.h \
-    worker.h \
     clientservice.h \
     internlmsg.h \
-    internlmsgsender.h
+    internlmsgsender.h \
+    internlmsgreceiver.h
 

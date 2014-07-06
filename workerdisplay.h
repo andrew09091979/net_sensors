@@ -5,27 +5,27 @@
 #include <mutex>
 #include <queue>
 #include <iostream>
-#include "worker.h"
+#include "internlmsgreceiver.h"
 #include "internlmsg.h"
 
 template <class D>
-class WorkerDisplay : public worker<D>
+class WorkerDisplay : public internlmsgreceiver<D>
 {
 public:
     WorkerDisplay();
-    typename worker<D>::HANDLE_RES HandleMsg(D data);
+    typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data);
     virtual ~WorkerDisplay();
 };
 
 template<class D>
-WorkerDisplay<D>::WorkerDisplay() : worker<D>(INTNLMSG::RECV_DISPLAY)
+WorkerDisplay<D>::WorkerDisplay() : internlmsgreceiver<D>(INTNLMSG::RECV_DISPLAY)
 {
 }
 
 template<class D>
-typename worker<D>::HANDLE_RES WorkerDisplay<D>::HandleMsg(D data)
+typename internlmsgreceiver<D>::HANDLE_RES WorkerDisplay<D>::HandleMsg(D data)
 {
-    typename worker<D>::HANDLE_RES res = worker<D>::HANDLE_OK;
+    typename internlmsgreceiver<D>::HANDLE_RES res = internlmsgreceiver<D>::HANDLE_OK;
 
     std::cout << data.getmsg() << std::endl;
 

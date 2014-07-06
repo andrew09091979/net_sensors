@@ -1,12 +1,12 @@
 #ifndef INTERNLMSGSENDER_H
 #define INTERNLMSGSENDER_H
-#include "worker.h"
+#include "internlmsgreceiver.h"
 
 template<class D>
 class internlmsgsender
 {    
 protected:
-    typedef worker<D> WORKER;
+    typedef internlmsgreceiver<D> WORKER;
     std::vector<WORKER *> workers;
 
 public:

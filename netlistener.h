@@ -7,14 +7,14 @@
 #include <netinet/in.h>
 #include <iostream>
 #include <vector>
-#include "worker.h"
+#include "internlmsgreceiver.h"
 #include "internlmsg.h"
 #include "internlmsgsender.h"
 
 template<class D>
 class netlistener : public internlmsgsender<D>
 {
-    typedef worker<D> WORKER;
+    typedef internlmsgreceiver<D> WORKER;
     const INTNLMSG::RECEIVER iam;
     const char * incoming_conn;
     const char * listen_started;

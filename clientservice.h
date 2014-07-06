@@ -4,14 +4,14 @@
 #include <sys/socket.h>
 #include <vector>
 #include <cstring>
-#include "worker.h"
+#include "internlmsgreceiver.h"
 #include "internlmsg.h"
 #include "internlmsgsender.h"
 
 template<class D>
 class clientservice : public internlmsgsender<D>
 {
-    typedef worker<D> WORKER;
+    typedef internlmsgreceiver<D> WORKER;
     const char * waiting_for_answer;
     const char * sending_hello;
     const char * answer_received;
@@ -47,7 +47,6 @@ clientservice<D>::clientservice(int sock_, WORKER * wrk_) : internlmsgsender<D>(
                                                             answer_received("[clientservice] answer received: "),
                                                             closing_conn("[clientservice] closing connection")
 {
-    this->workers.push_back(wrk_);
 }
 
 template<class D>
