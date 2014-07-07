@@ -3,18 +3,13 @@
 #include <functional>
 #include "netlistener.h"
 #include "netconnectionhandler.h"
-#include "message.h"
 #include "workerdisplay.h"
 #include "internlmsgsender.h"
 #include "internlmsg.h"
 #include "modulemanager.h"
 
 using namespace std;
-//typedef message<int> MESSAGE_TYPE;
 typedef internlmsg MESSAGE_TYPE;
-//typedef void (netconnectionhandler<MESSAGE_TYPE>::workerconnhandler::*MAINLOOP_TYPE)();
-//typedef void (internlmsgreceiver<MESSAGE_TYPE>::*MAINLOOP_TYPE)();
-//typedef void (netlistener<MESSAGE_TYPE>::*MAINLOOP_TYPE_PTR)();
 typedef netlistener<MESSAGE_TYPE>& NETLISTENER_TYPE_REF;
 typedef netlistener<MESSAGE_TYPE>* NETLISTENER_TYPE_PTR;
 
