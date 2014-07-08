@@ -7,17 +7,17 @@
 #include <thread>
 #include "modulemanager.h"
 #include "internlmsgreceiver.h"
-#include "clientservice.h"
 #include "internlmsgsender.h"
 #include "internlmsg.h"
+#include "clientservice.h"
 
 template<class D>
 class netconnectionhandler : public internlmsgreceiver<D>, public internlmsgsender<D>
 {
     typedef internlmsgreceiver<D> WORKER;
+    const modulemanager<D> * const mod_mgr;
     const char * start_clientserv;
     const char * sock_is_invalid;
-    const modulemanager<D> * const mod_mgr;
     int sock;
 
 public:
@@ -28,8 +28,8 @@ public:
 
 template<class D>
 netconnectionhandler<D>::netconnectionhandler(const modulemanager<D> * const mod_mgr_) :
-                                                    mod_mgr(mod_mgr_),
                                                     internlmsgreceiver<D>(INTNLMSG::RECV_NETCONNHANDLER),
+                                                    mod_mgr(mod_mgr_),
                                                     start_clientserv("[netconnectionhandler] starting clientservice"),
                                                     sock_is_invalid("[netconnectionhandler] socket is invalid")
 {

@@ -1,11 +1,11 @@
 #include <iostream>
 #include <thread>
 #include <functional>
+#include "internlmsg.h"
+#include "internlmsgsender.h"
 #include "netlistener.h"
 #include "netconnectionhandler.h"
 #include "workerdisplay.h"
-#include "internlmsgsender.h"
-#include "internlmsg.h"
 #include "modulemanager.h"
 
 using namespace std;
