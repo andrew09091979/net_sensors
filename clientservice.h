@@ -16,7 +16,7 @@ class arr_wrap
     D * arr;
     unsigned size;
 public:
-    arr_wrap(unsigned size_) : size(size)
+    arr_wrap(unsigned size_) : size(size_)
     {
         arr = new D[size];
     }
@@ -58,7 +58,7 @@ class clientservice : public internlmsgsender<D>
         INITIAL,
         WAITING_FOR_INIT_ANSWER,
         WAITING_FOR_ANSWER,
-        POST_REQUEST,
+        SEND_REQUEST,
         CLOSE
     };
 
@@ -76,6 +76,7 @@ class clientservice : public internlmsgsender<D>
 
     const char * waiting_for_answer;
     const char * sending_hello;
+    const char * sending_request;
     const char * answer_received;
     const char * starting_byte_received;
     const char * message_size_received;
@@ -100,6 +101,7 @@ clientservice<D>::clientservice(int sock_, const modulemanager<D> * const mod_mg
                                                             state(INITIAL),
                                                             waiting_for_answer("[clientservice] waiting for answer"),
                                                             sending_hello("[clientservice] sending hello"),
+                                                            sending_request("[clientservice] sending request"),
                                                             answer_received("[clientservice] answer received: "),
                                                             starting_byte_received("[clientservice] starting byte received"),
                                                             message_size_received("[clientservice] message size received: "),
@@ -115,7 +117,7 @@ clientservice<D>::clientservice(int sock_, const modulemanager<D> * const mod_mg
 template<class D>
 void clientservice<D>::operator()()
 {
-    char chBfr[100];
+    char chBfr[100000];
 
     while(!stop)
     {
@@ -129,7 +131,7 @@ void clientservice<D>::operator()()
 
 //                res = send(sock, hello.c_str() , hello.length(), 0);
 //                state = WAITING_FOR_INIT_ANSWER;
-                state = POST_REQUEST;
+                state = SEND_REQUEST;
             }
             break;
             case WAITING_FOR_INIT_ANSWER:
@@ -159,35 +161,78 @@ void clientservice<D>::operator()()
                 state = CLOSE;
             }
             break;
-            case POST_REQUEST:
+            case SEND_REQUEST:
             {
+                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(sending_request)));
                 arr_wrap<char> bfr(4);
                 *bfr.at(0) = '#';
                 *bfr.at(1) = 0x0;
                 *bfr.at(2) = 0x1;
                 *bfr.at(3) = 0x31;
-                bool res = send_nbytes(bfr.at(0), bfr.get_size());
+
+                if (send_nbytes(bfr.at(0), bfr.get_size()))
+                {
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string("send_nbytes ok")));
+                    state = WAITING_FOR_ANSWER;
+                }
+                else
+                {
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string("send_nbytes failed")));
+                    state = CLOSE;
+                }
             }
             break;
             case WAITING_FOR_ANSWER:
             {
                 this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(waiting_for_answer)));
                 memset(chBfr, 0, 2);
-                recv(sock, chBfr, 1, 0);
 
-                if (chBfr[0] == '#')
+                if (read_nbytes(chBfr, 1))
+                {
+                    if (chBfr[0] == '#')
+                    {
+                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                            std::move(std::string(starting_byte_received)));
+                        memset(chBfr, 0, 4);
+
+                        if (read_nbytes(chBfr, 2))
+                        {
+                            short size = *(short*)chBfr;
+                            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                                   std::move(std::string(message_size_received) + std::to_string(size)));
+
+                            if (read_nbytes(chBfr, size))
+                            {
+                                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                                       std::move(std::string(answer_received) + std::string(chBfr)));
+                                state = SEND_REQUEST;
+                            }
+                            else
+                            {
+                                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                                       std::move(std::string(recv_error)));
+                                state = CLOSE;
+                            }
+                        }
+                        else
+                        {
+                            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                                   std::move(std::string(recv_error)));
+                            state = CLOSE;
+                        }
+                    }
+                    else
+                    {
+
+                    }
+                }
+                else
                 {
                     this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
-                                        std::move(std::string(starting_byte_received)));
-                    recv(sock, chBfr, 2, 0);
-                    int size = *(int*)chBfr;
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
-                                           std::move(std::string(message_size_received) + std::to_string(size)));
-                    recv(sock, chBfr, size, 0);
+                                           std::move(std::string(recv_error)));
+                    state = CLOSE;
                 }
-                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
-                                    std::move(std::string(answer_received) + std::string(chBfr)));
-                state = CLOSE;
+
             }
             break;
             case CLOSE:
@@ -254,7 +299,7 @@ bool clientservice<D>::send_nbytes(char * const bfr, const ssize_t bytes_to_send
 
     while (remain_bytes > 0)
     {
-        sent = send(sock, bfr_ptr, remain_bytes, 0);
+        sent = send(sock, bfr_ptr, remain_bytes, MSG_NOSIGNAL);
 
         if (sent > 0)
         {
