@@ -19,5 +19,8 @@ HEADERS += \
     internlmsg.h \
     internlmsgsender.h \
     internlmsgreceiver.h \
-    modulemanager.h
+    modulemanager.h \
+    protocol.h \
+    arraywrapper.h \
+    protocolandroiddev.h
 

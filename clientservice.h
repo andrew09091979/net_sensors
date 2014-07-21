@@ -9,70 +9,19 @@
 #include "internlmsgreceiver.h"
 #include "internlmsg.h"
 #include "internlmsgsender.h"
-
-template <class D>
-class arr_wrap
-{
-    D * arr;
-    unsigned size;
-public:
-    arr_wrap(unsigned size_) : size(size_)
-    {
-        arr = new D[size];
-    }
-
-    ~arr_wrap()
-    {
-        delete [] arr;
-    }
-
-    D* at(unsigned pos)
-    {
-        if (pos < size)
-            return &arr[pos];
-        else
-            return nullptr;
-    }
-
-    D& operator[](unsigned pos)
-    {
-        if (pos < size)
-            return arr[pos];
-        else
-            return nullptr;
-    }
-
-    unsigned get_size() const
-    {
-        return size;
-    }
-};
+#include "arraywrapper.h"
+#include "protocolandroiddev.h"
 
 template<class D>
 class clientservice : public internlmsgsender<D>
 {
     typedef internlmsgreceiver<D> WORKER;
 
-    enum STATE
-    {
-        INITIAL,
-        WAITING_FOR_INIT_ANSWER,
-        WAITING_FOR_ANSWER,
-        SEND_REQUEST,
-        CLOSE
-    };
-
-    enum MESSAGE_TO_SENSOR
-    {
-        GREETING,
-        SEND_ME_VALUES,
-        GET_FROM_ME_VALUES
-    };
-
     int sock;
     const modulemanager<D> * const mod_mgr;
+    protocol<char> * const dev_protocol;
     bool stop;
-    STATE state;
+    protocolandroiddev::STATE state;
 
     const char * waiting_for_answer;
     const char * sending_hello;
@@ -97,8 +46,9 @@ template<class D>
 clientservice<D>::clientservice(int sock_, const modulemanager<D> * const mod_mgr_) :
                                                             sock(sock_),
                                                             mod_mgr(mod_mgr_),
+                                                            dev_protocol(new protocolandroiddev()),
                                                             stop(false),
-                                                            state(INITIAL),
+                                                            state(protocolandroiddev::INITIAL),
                                                             waiting_for_answer("[clientservice] waiting for answer"),
                                                             sending_hello("[clientservice] sending hello"),
                                                             sending_request("[clientservice] sending request"),
@@ -123,7 +73,7 @@ void clientservice<D>::operator()()
     {
         switch (state)
         {
-            case INITIAL:
+            case protocolandroiddev::INITIAL:
             {
 //                int res = 0;
 //                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::string(sending_hello));
@@ -131,16 +81,16 @@ void clientservice<D>::operator()()
 
 //                res = send(sock, hello.c_str() , hello.length(), 0);
 //                state = WAITING_FOR_INIT_ANSWER;
-                state = SEND_REQUEST;
+                state = protocolandroiddev::SEND_REQUEST;
             }
             break;
-            case WAITING_FOR_INIT_ANSWER:
+            case protocolandroiddev::WAITING_FOR_INIT_ANSWER:
             {
                 ssize_t msg_size = read_header();
 
                 if (msg_size > 0)
                 {
-                    arr_wrap<char> bfr(msg_size);
+                    arraywrapper<char> bfr(msg_size);
                     memset(bfr.at(0), 0, bfr.get_size());
 
                     if (read_nbytes(bfr.at(0), msg_size))
@@ -158,13 +108,13 @@ void clientservice<D>::operator()()
                     this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(header_read_error)));
                 }
 
-                state = CLOSE;
+                state = protocolandroiddev::CLOSE;
             }
             break;
-            case SEND_REQUEST:
+            case protocolandroiddev::SEND_REQUEST:
             {
                 this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(sending_request)));
-                arr_wrap<char> bfr(4);
+                arraywrapper<char> bfr(4);
                 *bfr.at(0) = '#';
                 *bfr.at(1) = 0x0;
                 *bfr.at(2) = 0x1;
@@ -173,16 +123,16 @@ void clientservice<D>::operator()()
                 if (send_nbytes(bfr.at(0), bfr.get_size()))
                 {
                     this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string("send_nbytes ok")));
-                    state = WAITING_FOR_ANSWER;
+                    state = protocolandroiddev::WAITING_FOR_ANSWER;
                 }
                 else
                 {
                     this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string("send_nbytes failed")));
-                    state = CLOSE;
+                    state = protocolandroiddev::CLOSE;
                 }
             }
             break;
-            case WAITING_FOR_ANSWER:
+            case protocolandroiddev::WAITING_FOR_ANSWER:
             {
                 this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(waiting_for_answer)));
                 memset(chBfr, 0, 2);
@@ -205,20 +155,20 @@ void clientservice<D>::operator()()
                             {
                                 this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
                                                        std::move(std::string(answer_received) + std::string(chBfr)));
-                                state = SEND_REQUEST;
+                                state = protocolandroiddev::SEND_REQUEST;
                             }
                             else
                             {
                                 this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
                                                        std::move(std::string(recv_error)));
-                                state = CLOSE;
+                                state = protocolandroiddev::CLOSE;
                             }
                         }
                         else
                         {
                             this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
                                                    std::move(std::string(recv_error)));
-                            state = CLOSE;
+                            state = protocolandroiddev::CLOSE;
                         }
                     }
                     else
@@ -230,12 +180,12 @@ void clientservice<D>::operator()()
                 {
                     this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
                                            std::move(std::string(recv_error)));
-                    state = CLOSE;
+                    state = protocolandroiddev::CLOSE;
                 }
 
             }
             break;
-            case CLOSE:
+            case protocolandroiddev::CLOSE:
             {
                 this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(closing_conn)));
                 close(sock);
