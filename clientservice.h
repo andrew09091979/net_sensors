@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <vector>
 #include <cstring>
+#include <memory>
 #include "modulemanager.h"
 #include "message.h"
 #include "internlmsgreceiver.h"
@@ -19,7 +20,7 @@ class clientservice : public internlmsgsender<D>
 
     int sock;
     const modulemanager<D> * const mod_mgr;
-    protocol<char> * const dev_protocol;
+    std::shared_ptr<protocol<char> > dev_protocol;
     bool stop;
     protocolandroiddev::STATE state;
 
