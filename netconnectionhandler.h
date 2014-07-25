@@ -10,6 +10,9 @@
 #include "internlmsgsender.h"
 #include "internlmsg.h"
 #include "clientservice.h"
+#include "deviceandroid.h"
+#include "protocolandroiddev.h"
+#include "connectionhandler.h"
 
 template<class D>
 class netconnectionhandler : public internlmsgreceiver<D>, public internlmsgsender<D>
@@ -30,7 +33,7 @@ template<class D>
 netconnectionhandler<D>::netconnectionhandler(const modulemanager<D> * const mod_mgr_) :
                                                     internlmsgreceiver<D>(INTNLMSG::RECV_NETCONNHANDLER),
                                                     mod_mgr(mod_mgr_),
-                                                    start_clientserv("[netconnectionhandler] starting clientservice"),
+                                                    start_clientserv("[netconnectionhandler] starting device"),
                                                     sock_is_invalid("[netconnectionhandler] socket is invalid")
 {
     std::vector<INTNLMSG::RECEIVER> receivers_to_get;
@@ -45,11 +48,15 @@ typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D 
 
     if (sock != -1)
     {
-        clientservice<D> cs = clientservice<D>(sock, mod_mgr);
+//        clientservice<D> cs = clientservice<D>(sock, mod_mgr);
+        std::shared_ptr<connectionhandler> conn(new connectionhandler(sock));
+        std::shared_ptr<protocol<char>> prot(new protocolandroiddev(conn));
+        deviceandroid<D> dev(mod_mgr, prot);
+
         D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::string(start_clientserv));
         send_internl_msg(std::move(msg));
 
-        std::thread thr(cs);
+        std::thread thr(dev);
         thr.detach();
     }
     else

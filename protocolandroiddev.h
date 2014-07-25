@@ -2,18 +2,10 @@
 #define PROTOCOLANDROIDDEV_H
 
 #include <protocol.h>
+#include <string>
 
 class protocolandroiddev : public protocol<char>
 {
-    enum STATE
-    {
-        INITIAL,
-        WAITING_FOR_INIT_ANSWER,
-        WAITING_FOR_ANSWER,
-        SEND_REQUEST,
-        CLOSE
-    };
-
     enum MESSAGE_TO_SENSOR
     {
         GREETING,
@@ -21,20 +13,28 @@ class protocolandroiddev : public protocol<char>
         GET_FROM_ME_VALUES
     };
 
-    const char START_BYTE;
+    enum STATE
+    {
+        SEND_REQUEST,
+        READ_START_MARKER,
+        READ_MSG_SIZE,
+        READ_MSG,
+        FINISHED
+    };
+
+    const char START_MARKER;
+    const int START_MARKER_LEN;
+    const int MSG_SIZE_LEN;
+
+    int numBytesToRead;
+
+    int exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response);
 public:
-    protocolandroiddev() : START_BYTE('#')
-    {
+    protocolandroiddev(std::shared_ptr<connectionhandler> conn);
 
-    }
-
-    arraywrapper<char> wrapMessage(const arraywrapper<char> &msg)
-    {
-        arraywrapper<char> msgWrapped(msg.get_size() + 3);
-
-        return msgWrapped;
-    }
-
+    int getDeviceName(std::string &devName);
+    int getData(const int param, arraywrapper<char> &data);
+    int shutdown();
     ~protocolandroiddev() {}
 };
 #endif // PROTOCOLANDROIDDEV_H

@@ -12,7 +12,7 @@ public:
     ~connectionhandler();
 
     bool read_nbytes(char * const bfr, const ssize_t bytes_to_read);
-    bool send_nbytes(char * const bfr, const ssize_t bytes_to_send);
+    bool send_nbytes(const char * const bfr, const ssize_t bytes_to_send);
     int shutdownconn();
 };
 

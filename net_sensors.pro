@@ -5,7 +5,8 @@ CONFIG -= qt
 
 SOURCES += main.cpp \
     internlmsg.cpp \
-    connectionhandler.cpp
+    connectionhandler.cpp \
+    protooolandroiddev.cpp
 
 QMAKE_CXXFLAGS += -std=c++0x
 
@@ -25,5 +26,6 @@ HEADERS += \
     arraywrapper.h \
     protocolandroiddev.h \
     device.h \
-    connectionhandler.h
+    connectionhandler.h \
+    deviceandroid.h
 

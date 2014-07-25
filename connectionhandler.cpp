@@ -39,10 +39,10 @@ bool connectionhandler::read_nbytes(char * const bfr, const ssize_t bytes_to_rea
     return res;
 }
 
-bool connectionhandler::send_nbytes(char * const bfr, const ssize_t bytes_to_send)
+bool connectionhandler::send_nbytes(const char * const bfr, const ssize_t bytes_to_send)
 {
     bool res = false;
-    char *bfr_ptr = bfr;
+    const char *bfr_ptr = bfr;
     ssize_t remain_bytes = bytes_to_send;
     ssize_t sent = 0;
 

@@ -1,6 +1,6 @@
 #ifndef CLIENTSERVICE_H
 #define CLIENTSERVICE_H
-
+/*
 #include <sys/socket.h>
 #include <vector>
 #include <cstring>
@@ -16,13 +16,22 @@
 template<class D>
 class clientservice : public internlmsgsender<D>
 {
+    enum STATE
+    {
+        INITIAL,
+        WAITING_FOR_STARTBYTE,
+        WAITING_FOR_MSGSIZE,
+        WAITING_FOR_MSG,
+        SEND_REQUEST,
+        CLOSE
+    };
     typedef internlmsgreceiver<D> WORKER;
 
     int sock;
     const modulemanager<D> * const mod_mgr;
     std::shared_ptr<protocol<char> > dev_protocol;
     bool stop;
-    protocolandroiddev::STATE state;
+    STATE state;
 
     const char * waiting_for_answer;
     const char * sending_hello;
@@ -197,6 +206,7 @@ void clientservice<D>::operator()()
             break;
         }
     }
+
 }
 
 template<class D>
@@ -268,4 +278,5 @@ bool clientservice<D>::send_nbytes(char * const bfr, const ssize_t bytes_to_send
 
     return res;
 }
+*/
 #endif // CLIENTSERVICE_H
