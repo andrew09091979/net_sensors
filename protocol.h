@@ -14,6 +14,7 @@ protected:
 public:
     protocol(std::shared_ptr<connectionhandler> conn) : conn_handl(conn){}
     virtual int getDeviceName(std::string &devName) = 0;
+    virtual int getDeviceConfig(std::string &devConfig) = 0;
     virtual int getData(const int param, arraywrapper<char> &data) = 0;
     virtual int shutdown() = 0;
     virtual ~protocol(){}

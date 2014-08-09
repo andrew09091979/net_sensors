@@ -70,25 +70,21 @@ netlistener<D>::netlistener(const modulemanager<D> * const mod_mgr_) :
             // change socket's state to LISTEN
             if (listen(sockToListen, 5) != -1)
             {
-                D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(listen_started)));
-                send_internl_msg(std::move(msg));
+                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(listen_started)));
             }
             else
             {
-                D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(listen_error)));
-                send_internl_msg(std::move(msg));
+                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(listen_error)));
             }
         }
         else
         {
-            D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(bind_error)));
-            send_internl_msg(std::move(msg));
+            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(bind_error)));
         }
     }
     else
     {
-        D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(sock_creation_error)));
-        send_internl_msg(std::move(msg));
+        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(sock_creation_error)));
     }
 }
 
@@ -111,16 +107,12 @@ void netlistener<D>::operator()()
 
         if (sock != -1)
         {
-            D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::string(incoming_conn));
-            send_internl_msg(std::move(msg));
-
-            D msg1 = D(INTNLMSG::RECV_NETCONNHANDLER, sock, std::string(incoming_conn));
-            send_internl_msg(std::move(msg1));
+            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(incoming_conn)));
+            this->send_internl_msg(INTNLMSG::RECV_NETCONNHANDLER, sock, std::move(std::string(incoming_conn)));
         }
         else
         {
-            D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::string(accept_error));
-            send_internl_msg(std::move(msg));
+            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(accept_error)));
 
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {

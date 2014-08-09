@@ -8,8 +8,9 @@ class protocolandroiddev : public protocol<char>
 {
     enum MESSAGE_TO_SENSOR
     {
-        GREETING,
-        SEND_ME_VALUES,
+        GET_DEVICE_NAME = 0x30,
+        GET_DEVICE_CONFIG = 0x33,
+        GET_VALUES = 0x31,
         GET_FROM_ME_VALUES
     };
 
@@ -33,6 +34,7 @@ public:
     protocolandroiddev(std::shared_ptr<connectionhandler> conn);
 
     int getDeviceName(std::string &devName);
+    int getDeviceConfig(std::string &devConfig);
     int getData(const int param, arraywrapper<char> &data);
     int shutdown();
     ~protocolandroiddev() {}

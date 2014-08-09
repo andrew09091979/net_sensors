@@ -11,12 +11,12 @@ protocolandroiddev::protocolandroiddev(std::shared_ptr<connectionhandler> conn) 
 
 int protocolandroiddev::exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response)
 {
-    bool stop = false;
+    bool cycleComplete = false;
     STATE state = SEND_REQUEST;
     short size = 0;
     int res = 0;
 
-    while (!stop)
+    while (!cycleComplete)
     {
         switch (state)
         {
@@ -86,7 +86,7 @@ int protocolandroiddev::exchangeCycle(const arraywrapper<char> &msg, arraywrappe
             break;
             case FINISHED:
             {
-                stop = true;
+                cycleComplete = true;
             }
             break;
         }
@@ -102,13 +102,33 @@ int protocolandroiddev::getDeviceName(std::string &devName)
     *msg.at(0) = START_MARKER;
     *msg.at(1) = 0x0;
     *msg.at(2) = 0x1;
-    *msg.at(3) = 0x30;
+    *msg.at(3) = GET_DEVICE_NAME;
 
     res = exchangeCycle(msg, response);
 
     if (res != -1)
     {
         devName = response.at(0);
+    }
+    return res;
+}
+
+int protocolandroiddev::getDeviceConfig(std::string &devConfig)
+{
+    int res = -1;
+    arraywrapper<char> msg(4);
+    arraywrapper<char> response;
+
+    *msg.at(0) = START_MARKER;
+    *msg.at(1) = 0x0;
+    *msg.at(2) = 0x1;
+    *msg.at(3) = GET_DEVICE_CONFIG;
+
+    res = exchangeCycle(msg, response);
+
+    if (res != -1)
+    {
+        devConfig = response.at(0);
     }
     return res;
 }
@@ -121,7 +141,7 @@ int protocolandroiddev::getData(const int param, arraywrapper<char> &data)
     *msg.at(0) = START_MARKER;
     *msg.at(1) = 0x0;
     *msg.at(2) = 0x1;
-    *msg.at(3) = 0x31;
+    *msg.at(3) = GET_VALUES;
 
     res = exchangeCycle(msg, data);
 

@@ -13,7 +13,8 @@ namespace INTNLMSG
         RECV_CLIENTSERVICE,
         RECV_NETLISTENER,
         RECV_NETCONNHANDLER,
-        RECV_DEVICE
+        RECV_DEVICE,
+        RECV_DEVICE_MANAGER
     };
 }
 class internlmsg

@@ -5,12 +5,13 @@
 #include "internlmsgsender.h"
 
 template<class D>
-class device  :/* public internlmsgreceiver<D>, */public internlmsgsender<D>
+class device  : public internlmsgreceiver<D>, public internlmsgsender<D>
 {
+protected:
+//    typedef
 public:
-//    device() : internlmsgreceiver<D>(INTNLMSG::RECV_DEVICE){}
+    device() : internlmsgreceiver<D>(INTNLMSG::RECV_DEVICE){}
     virtual void operator()() = 0;
-//    typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data) = 0;
     virtual ~device() {}
 };
 

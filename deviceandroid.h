@@ -35,12 +35,13 @@ class deviceandroid : public device<D>
     bool stop;
     STATE state;
     std::string devName;
+    std::string devCfg;
 public:
     deviceandroid(const modulemanager<D> * const mod_mgr_,
            std::shared_ptr<protocol<char> > protocol_);
     ~deviceandroid(){}
     void operator()();
-//    typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data);
+    typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data);
 };
 
 template <class D>
@@ -54,6 +55,7 @@ deviceandroid<D>::deviceandroid(const modulemanager<D> * const mod_mgr_,
 {
     std::vector<INTNLMSG::RECEIVER> receivers_to_get;
     receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
+    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
     mod_mgr->get_receivers(receivers_to_get, this->workers);
 }
 
@@ -76,6 +78,18 @@ void deviceandroid<D>::operator()()
                 {
                     this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
                                            std::move(devName + std::string(" - got device name")));
+                    state = WORK;
+                }
+                if (protocol_dev->getDeviceConfig(devCfg) == -1)
+                {
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                           std::move(devName + std::string(" - can't get device name")));
+                    state = SHUTDOWN;
+                }
+                else
+                {
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                           std::move(devName + std::string(" - got device config - ") + devCfg));
                     state = WORK;
                 }
             }
@@ -106,15 +120,17 @@ void deviceandroid<D>::operator()()
                 stop = true;
                 this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
                                        std::move(devName + std::string("- shutdown")));
+                this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 0,
+                                       std::move(devName + std::string("- shutdown")));
             }
             break;
         }
     }
 }
 
-//template <class D>
-//typename internlmsgreceiver<D>::HANDLE_RES deviceandroid<D>::HandleMsg(D data)
-//{
-//    return internlmsgreceiver<D>::HANDLE_OK;
-//}
+template <class D>
+typename internlmsgreceiver<D>::HANDLE_RES deviceandroid<D>::HandleMsg(D data)
+{
+    return internlmsgreceiver<D>::HANDLE_OK;
+}
 #endif // DEVICEANDROID_H

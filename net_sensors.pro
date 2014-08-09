@@ -17,7 +17,6 @@ HEADERS += \
     netlistener.h \
     netconnectionhandler.h \
     message.h \
-    clientservice.h \
     internlmsg.h \
     internlmsgsender.h \
     internlmsgreceiver.h \
@@ -27,5 +26,6 @@ HEADERS += \
     protocolandroiddev.h \
     device.h \
     connectionhandler.h \
-    deviceandroid.h
+    deviceandroid.h \
+    devicemanager.h
 

@@ -9,7 +9,6 @@
 #include "internlmsgreceiver.h"
 #include "internlmsgsender.h"
 #include "internlmsg.h"
-#include "clientservice.h"
 #include "deviceandroid.h"
 #include "protocolandroiddev.h"
 #include "connectionhandler.h"
@@ -38,6 +37,7 @@ netconnectionhandler<D>::netconnectionhandler(const modulemanager<D> * const mod
 {
     std::vector<INTNLMSG::RECEIVER> receivers_to_get;
     receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
+    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
     mod_mgr->get_receivers(receivers_to_get, this->workers);
 }
 
@@ -48,21 +48,19 @@ typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D 
 
     if (sock != -1)
     {
-//        clientservice<D> cs = clientservice<D>(sock, mod_mgr);
         std::shared_ptr<connectionhandler> conn(new connectionhandler(sock));
         std::shared_ptr<protocol<char>> prot(new protocolandroiddev(conn));
         deviceandroid<D> dev(mod_mgr, prot);
 
-        D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::string(start_clientserv));
-        send_internl_msg(std::move(msg));
+        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(start_clientserv)));
+        this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 1, std::move(std::string(start_clientserv)));
 
         std::thread thr(dev);
         thr.detach();
     }
     else
     {
-        D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::string(sock_is_invalid));
-        send_internl_msg(std::move(msg));
+        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(sock_is_invalid)));
     }
 
     return internlmsgreceiver<D>::HANDLE_FAILED;
