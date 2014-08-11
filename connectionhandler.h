@@ -7,6 +7,9 @@
 class connectionhandler
 {
     int sock;
+    const int READ_TIMEOUT_SEC;
+    const int MAX_ATTEMPTS_TO_READ;
+
 public:
     connectionhandler(int sock_);
     ~connectionhandler();
