@@ -1,10 +1,10 @@
-#ifndef PROTOCOLANDROIDDEV_H
-#define PROTOCOLANDROIDDEV_H
+#ifndef PROTOCOLREMCONSOLE_H
+#define PROTOCOLREMCONSOLE_H
 
 #include <protocol.h>
 #include <string>
 
-class protocolandroiddev : public protocol<char>
+class protocolremconsole : public protocol<char>
 {
     enum MESSAGE_TO_SENSOR
     {
@@ -32,7 +32,7 @@ class protocolandroiddev : public protocol<char>
 
     int exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response);
 public:
-    protocolandroiddev(std::shared_ptr<connectionhandler> conn);
+    protocolremconsole(std::shared_ptr<connectionhandler> conn);
 
     int getDeviceName(std::string &devName);
     int getDeviceConfig(std::string &devConfig);
@@ -40,6 +40,7 @@ public:
     int getCommand(const int param, arraywrapper<char> &data);
     int sendData(arraywrapper<char> &data);
     int shutdown();
-    ~protocolandroiddev() {}
+    ~protocolremconsole() {}
 };
-#endif // PROTOCOLANDROIDDEV_H
+
+#endif // PROTOCOLREMCONSOLE_H

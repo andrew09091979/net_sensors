@@ -141,13 +141,26 @@ int protocolandroiddev::getData(const int param, arraywrapper<char> &data)
     *msg.at(0) = START_MARKER;
     *msg.at(1) = 0x0;
     *msg.at(2) = 0x1;
-    *msg.at(3) = GET_VALUES;
+    *msg.at(3) = GET_VALUES_IN_STRING;
 
     res = exchangeCycle(msg, data);
 
     return res;
 }
 
+int protocolandroiddev::getCommand(const int param, arraywrapper<char> &data)
+{
+    int res = -1;
+
+    return res;
+}
+
+int protocolandroiddev::sendData(arraywrapper<char> &data)
+{
+    int res = -1;
+
+    return res;
+}
 int protocolandroiddev::shutdown()
 {
     return conn_handl->shutdownconn();

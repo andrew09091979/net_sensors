@@ -26,6 +26,10 @@ public:
         size = oth.size;
     }
 
+    arraywrapper(D * arr_, unsigned size_) : arr(arr_), size(size_)
+    {
+    }
+
     ~arraywrapper()
     {
         delete [] arr;

@@ -13,6 +13,7 @@ class devicemanager  : public internlmsgreceiver<D>, public internlmsgsender<D>
     int numOfDevices;
     const char *numOfDevs;
 
+    bool stop;
 public:
     devicemanager(const modulemanager<D> * const mod_mgr_);
     typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data);
@@ -21,10 +22,10 @@ public:
 
 template<class D>
 devicemanager<D>::devicemanager(const modulemanager<D> * const mod_mgr_):
-                    internlmsgreceiver<D>(INTNLMSG::RECV_DEVICE_MANAGER),
-                    mod_mgr(mod_mgr_),
-                    numOfDevices(0),
-                    numOfDevs("[device manager] number of devices: ")
+                                        internlmsgreceiver<D>(INTNLMSG::RECV_DEVICE_MANAGER),
+                                        mod_mgr(mod_mgr_),
+                                        numOfDevices(0),
+                                        numOfDevs("[device manager] number of devices: ")
 {
     std::vector<INTNLMSG::RECEIVER> receivers_to_get;
     receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
@@ -36,11 +37,11 @@ typename internlmsgreceiver<D>::HANDLE_RES devicemanager<D>::HandleMsg(D data)
 {
     int whatHappened = data.getval();
 
-    if (whatHappened == 1)
+    if (whatHappened == 1)//devive connected
     {
         ++numOfDevices;
     }
-    else
+    else//device closed
     {
         --numOfDevices;
     }

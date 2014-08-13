@@ -6,7 +6,8 @@ CONFIG -= qt
 SOURCES += main.cpp \
     internlmsg.cpp \
     connectionhandler.cpp \
-    protooolandroiddev.cpp
+    protooolandroiddev.cpp \
+    protocolremconsole.cpp
 
 QMAKE_CXXFLAGS += -std=c++0x
 
@@ -27,5 +28,7 @@ HEADERS += \
     device.h \
     connectionhandler.h \
     deviceandroid.h \
-    devicemanager.h
+    devicemanager.h \
+    deviceremconsole.h \
+    protocolremconsole.h
 

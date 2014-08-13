@@ -17,6 +17,19 @@
 #define ERROR_SENDING_MSG "Message sending failed"
 #define ERROR_RECEIVING_MSG "Message receiving failed"
 
+struct CHANCFG
+{
+    std::string chanName;
+    float max_val;
+    float min_val;
+};
+
+struct DEVCFG
+{
+    std::string devName;
+    std::vector<CHANCFG> chanCfg;
+};
+
 template <class D>
 class deviceandroid : public device<D>
 {
@@ -34,6 +47,7 @@ class deviceandroid : public device<D>
 
     bool stop;
     STATE state;
+    DEVCFG devConfig;
     std::string devName;
     std::string devCfg;
 public:
