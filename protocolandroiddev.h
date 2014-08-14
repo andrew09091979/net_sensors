@@ -37,7 +37,7 @@ public:
     int getDeviceName(std::string &devName);
     int getDeviceConfig(std::string &devConfig);
     int getData(const int param, arraywrapper<char> &data);
-    int getCommand(const int param, arraywrapper<char> &data);
+    int getCommand(const int param, std::string &cmd);
     int sendData(arraywrapper<char> &data);
     int shutdown();
     ~protocolandroiddev() {}

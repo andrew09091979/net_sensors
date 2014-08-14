@@ -148,7 +148,7 @@ int protocolandroiddev::getData(const int param, arraywrapper<char> &data)
     return res;
 }
 
-int protocolandroiddev::getCommand(const int param, arraywrapper<char> &data)
+int protocolandroiddev::getCommand(const int param, std::string &cmd)
 {
     int res = -1;
 

@@ -15,7 +15,7 @@ class deviceremconsole : public device<D>
         WORK,
         SHUTDOWN
     };
-
+    const char * cmd_received;
     std::vector<std::string> commands;
     bool stop;
     STATE state;
@@ -33,6 +33,7 @@ public:
 template <class D>
 deviceremconsole<D>::deviceremconsole(const modulemanager<D> * const mod_mgr_,
                                       std::shared_ptr<protocol<char> > protocol_) :
+                                                                   cmd_received("[remote console] - command received: "),
                                                                    stop(false),
                                                                    state(STATE::INITIAL),
                                                                    mod_mgr(mod_mgr_),
@@ -67,7 +68,14 @@ void deviceremconsole<D>::operator ()()
 
             case WORK:
             {
-                state = SHUTDOWN;
+                std::string command;
+                protocol_dev->getCommand(1, command);
+
+                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                       std::move(std::string(cmd_received) + command));
+
+                if (command.compare(std::string("exit")) == 0)
+                    state = SHUTDOWN;
             }
             break;
 

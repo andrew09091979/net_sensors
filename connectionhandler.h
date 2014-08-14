@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <string>
 
 class connectionhandler
 {
@@ -15,6 +16,7 @@ public:
     ~connectionhandler();
 
     bool read_nbytes(char * const bfr, const ssize_t bytes_to_read);
+    bool read_line(std::string &bfr);
     bool send_nbytes(const char * const bfr, const ssize_t bytes_to_send);
     int shutdownconn();
 };

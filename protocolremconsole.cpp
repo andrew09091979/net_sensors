@@ -37,10 +37,10 @@ int protocolremconsole::getData(const int param, arraywrapper<char> &data)
     return res;
 }
 
-int protocolremconsole::getCommand(const int param, arraywrapper<char> &data)
+int protocolremconsole::getCommand(const int param, std::string &cmd)
 {
     int res = -1;
-
+    conn_handl->read_line(cmd);
     return res;
 }
 
