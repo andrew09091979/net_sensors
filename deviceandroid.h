@@ -40,42 +40,67 @@ class deviceandroid : public device<D>
         SHUTDOWN
     };
 
+    class internlmsgreceivr : public internlmsgreceiver<D>
+    {
+        device<D> *const dev;
+
+    public:
+        internlmsgreceivr(device<D> * const dev_, INTNLMSG::RECEIVER iam_) : dev(dev_),
+                                                                             internlmsgreceiver<D>(iam_)
+        {
+
+        }
+
+        typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data)
+        {
+            return dev->HandleInternalMsg(std::move(data));
+        }
+    };
+
     typedef internlmsgreceiver<D> WORKER;
-    const modulemanager<D> * const mod_mgr;
+    typedef typename device<D>::INTMSGRES INTMSGRES;
+    modulemanager<D> * const mod_mgr;
     std::shared_ptr<protocol<char> > protocol_dev;
     std::string dev_name;
 
     bool stop;
     STATE state;
+    internlmsgreceivr internalmsgreceiver;
     DEVCFG devConfig;
     std::string devName;
     std::string devCfg;
 public:
-    deviceandroid(const modulemanager<D> * const mod_mgr_,
+    deviceandroid(modulemanager<D> * const mod_mgr_,
            std::shared_ptr<protocol<char> > protocol_);
     ~deviceandroid(){}
     void operator()();
-    typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data);
+    INTMSGRES HandleInternalMsg(D data);
 };
 
 template <class D>
-deviceandroid<D>::deviceandroid(const modulemanager<D> * const mod_mgr_,
+deviceandroid<D>::deviceandroid(modulemanager<D> * const mod_mgr_,
                   std::shared_ptr<protocol<char> > protocol_) : mod_mgr(mod_mgr_),
                                                               protocol_dev(protocol_),
                                                               stop(false),
                                                               state(INITIAL),
+                                                              internalmsgreceiver(this, INTNLMSG::RECV_DEVICE),
                                                               //state(WORK),
                                                               devName("Unknown device")
 {
-    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
-    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
-    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
-    mod_mgr->get_receivers(receivers_to_get, this->workers);
+
 }
 
 template<class D>
 void deviceandroid<D>::operator()()
 {
+    std::thread thrd = std::thread(std::reference_wrapper<internlmsgreceivr>(internalmsgreceiver));
+    thrd.detach();
+    mod_mgr->register_receiver(&this->internalmsgreceiver);
+    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
+    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
+    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
+    mod_mgr->get_receivers(receivers_to_get, this->workers);
+
     while(!stop)
     {
         switch (state)
@@ -136,6 +161,7 @@ void deviceandroid<D>::operator()()
                                        std::move(devName + std::string("- shutdown")));
                 this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 0,
                                        std::move(devName + std::string("- shutdown")));
+                this->internalmsgreceiver << D(INTNLMSG::RECV_DEVICE, -1, std::move(std::string("exit")));
             }
             break;
         }
@@ -143,8 +169,25 @@ void deviceandroid<D>::operator()()
 }
 
 template <class D>
-typename internlmsgreceiver<D>::HANDLE_RES deviceandroid<D>::HandleMsg(D data)
+typename deviceandroid<D>::INTMSGRES deviceandroid<D>::HandleInternalMsg(D data)
 {
-    return internlmsgreceiver<D>::HANDLE_OK;
+    typename deviceandroid<D>::INTMSGRES res = internlmsgreceiver<D>::HANDLE_FAILED;
+    int command = data.getval();
+
+    switch (command)
+    {
+        case -1:
+        {
+            this->internalmsgreceiver.stopthread();
+        }
+        break;
+
+        case 3://num_of_devs_demanded
+        {
+        }
+        break;
+    }
+
+    return res;
 }
 #endif // DEVICEANDROID_H

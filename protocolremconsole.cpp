@@ -47,6 +47,7 @@ int protocolremconsole::getCommand(const int param, std::string &cmd)
 int protocolremconsole::sendData(arraywrapper<char> &data)
 {
     int res = -1;
+    std::lock_guard<std::mutex> lk(sendmtx);
 
     if (this->conn_handl->send_nbytes(data.at(0), data.get_size()))
     {

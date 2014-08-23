@@ -1,8 +1,10 @@
 #ifndef PROTOCOLREMCONSOLE_H
 #define PROTOCOLREMCONSOLE_H
 
-#include <protocol.h>
 #include <string>
+#include <mutex>
+#include "protocol.h"
+
 
 class protocolremconsole : public protocol<char>
 {
@@ -29,7 +31,7 @@ class protocolremconsole : public protocol<char>
     const int MSG_SIZE_LEN;
 
     int numBytesToRead;
-
+    std::mutex sendmtx;
     int exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response);
 public:
     protocolremconsole(std::shared_ptr<connectionhandler> conn);

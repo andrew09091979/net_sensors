@@ -12,12 +12,6 @@ template <class D>
 class internlmsgreceiver
 {
 protected:
-    enum HANDLE_RES
-    {
-        HANDLE_OK,
-        HANDLE_FAILED
-    };
-
     const INTNLMSG::RECEIVER iam;
     std::shared_ptr<std::mutex> mtx_p;
     std::shared_ptr<std::queue<D>> message_queue_p;
@@ -25,6 +19,13 @@ protected:
     bool stop;
 
 public:
+
+    enum HANDLE_RES
+    {
+        HANDLE_OK,
+        HANDLE_FAILED
+    };
+
     internlmsgreceiver(INTNLMSG::RECEIVER iam_) : iam(iam_), mtx_p(new std::mutex),
                                                   message_queue_p(new std::queue<D>),
                                                   data_cond_p(new std::condition_variable),
@@ -37,6 +38,7 @@ public:
     virtual void operator ()();
     virtual HANDLE_RES HandleMsg(D data) = 0;
     INTNLMSG::RECEIVER get_type() const;
+    void stopthread();
 };
 
 template <class D>
@@ -73,7 +75,7 @@ void internlmsgreceiver<D>::MainLoop()
         message_queue_p->pop();
         lk.unlock();
 
-        if (data.getrecv == iam)
+        if ((data.getreceiver() == iam) || (data.getreceiver() == INTNLMSG::RECV_BROADCAST))
             HandleMsg(data);
     }
 }
@@ -89,7 +91,7 @@ void internlmsgreceiver<D>::operator ()()
         message_queue_p->pop();
         lk.unlock();
 
-        if (data.getreceiver() == iam)
+        if ((data.getreceiver() == iam)  || (data.getreceiver() == INTNLMSG::RECV_BROADCAST))
             HandleMsg(std::move(data));
     }
 }
@@ -100,5 +102,10 @@ INTNLMSG::RECEIVER internlmsgreceiver<D>::get_type() const
     return iam;
 }
 
+template<class D>
+void internlmsgreceiver<D>::stopthread()
+{
+    stop = true;
+}
 
 #endif // WORKER_H

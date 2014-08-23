@@ -37,18 +37,27 @@ typename internlmsgreceiver<D>::HANDLE_RES devicemanager<D>::HandleMsg(D data)
 {
     int whatHappened = data.getval();
 
-    if (whatHappened == 1)//devive connected
-    {
-        ++numOfDevices;
-    }
-    else//device closed
+    if (whatHappened == 0)//devive closed
     {
         --numOfDevices;
     }
+    else if(whatHappened == 1)//device connected
+    {
+        ++numOfDevices;
+    }
+    else if(whatHappened == 3)//remote console asked number of devices
+    {
+        this->workers.clear();
+        std::vector<INTNLMSG::RECEIVER> receivers_to_get;
+        receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
+        receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE);
+        mod_mgr->get_receivers(receivers_to_get, this->workers);
 
-    D msg = D(INTNLMSG::RECV_DISPLAY, 0, std::string(numOfDevs)
-              + std::to_string(numOfDevices));
-    send_internl_msg(std::move(msg));
+        this->send_internl_msg(INTNLMSG::RECV_DEVICE, 3, std::string(numOfDevs)
+                                 + std::to_string(numOfDevices));
+    }
+    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::string(numOfDevs)
+                           + std::to_string(numOfDevices) + std::string("\n"));
 
     return internlmsgreceiver<D>::HANDLE_OK;
 }
