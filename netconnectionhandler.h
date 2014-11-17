@@ -50,67 +50,70 @@ netconnectionhandler<D>::netconnectionhandler(modulemanager<D> * const mod_mgr_)
 template<class D>
 typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D data)
 {
-    sock = data.getval();
     typename internlmsgreceiver<D>::HANDLE_RES res = internlmsgreceiver<D>::HANDLE_FAILED;
 
-    if (sock != -1)
+    if (data.getreceiver() == INTNLMSG::RECV_NETCONNHANDLER)
     {
-        connectionhandler ch(sock);
-        char dev_type[3];
+        sock = data.getval();
 
-        if (ch.read_nbytes(dev_type, 3))
+        if (sock != -1)
         {
-            switch (dev_type[0])
+            connectionhandler ch(sock);
+            char dev_type[3];
+
+            if (ch.read_nbytes(dev_type, 3))
             {
-                case 0x31:
+                switch (dev_type[0])
                 {
-                    std::shared_ptr<connectionhandler> conn(new connectionhandler(sock));
-                    std::shared_ptr<protocol<char>> prot(new protocolandroiddev(conn));
-                    deviceandroid<D> dev(mod_mgr, prot);
+                    case 0x31:
+                    {
+                        std::shared_ptr<connectionhandler> conn(new connectionhandler(sock));
+                        std::shared_ptr<protocol<char>> prot(new protocolandroiddev(conn));
+                        deviceandroid<D> dev(mod_mgr, prot);
 
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
-                                           std::move(std::string(start_clientserv)));
-                    this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 1,
-                                           std::move(std::string(start_clientserv)));
-                    //std::thread thr = std::thread(std::reference_wrapper<deviceandroid<D>>(dev));
-                    std::thread thr = std::thread(dev);
-                    thr.detach();
-                    res = internlmsgreceiver<D>::HANDLE_OK;
-                }
-                break;
-                case 0x32:
-                {
-                    std::shared_ptr<connectionhandler> conn(new connectionhandler(sock));
-                    std::shared_ptr<protocol<char>> prot(new protocolremconsole(conn));
-                    deviceremconsole<D> dev(mod_mgr, prot);
+                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                               std::move(std::string(start_clientserv)));
+                        this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 1,
+                                               std::move(std::string(start_clientserv)));
+                        //std::thread thr = std::thread(std::reference_wrapper<deviceandroid<D>>(dev));
+                        std::thread thr = std::thread(dev);
+                        thr.detach();
+                        res = internlmsgreceiver<D>::HANDLE_OK;
+                    }
+                    break;
+                    case 0x32:
+                    {
+                        std::shared_ptr<connectionhandler> conn(new connectionhandler(sock));
+                        std::shared_ptr<protocol<char>> prot(new protocolremconsole(conn));
+                        deviceremconsole<D> dev(mod_mgr, prot);
 
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
-                                           std::move(std::string(start_clientserv)));
-                    this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 1,
-                                           std::move(std::string(start_clientserv)));
-                    //std::thread thr = std::thread(std::reference_wrapper<deviceremconsole<D>>(dev));
-                    std::thread thr = std::thread(dev);
-                    thr.detach();
-                    res = internlmsgreceiver<D>::HANDLE_OK;
+                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                               std::move(std::string(start_clientserv)));
+                        this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 1,
+                                               std::move(std::string(start_clientserv)));
+                        //std::thread thr = std::thread(std::reference_wrapper<deviceremconsole<D>>(dev));
+                        std::thread thr = std::thread(dev);
+                        thr.detach();
+                        res = internlmsgreceiver<D>::HANDLE_OK;
+                    }
+                    break;
+                    default:
+                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                               std::move(std::string(invalid_dev_type)));
+                    break;
                 }
-                break;
-                default:
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
-                                           std::move(std::string(invalid_dev_type)));
-                break;
+            }
+            else
+            {
+                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                                       std::move(std::string(cannot_get_dev_type)));
             }
         }
         else
         {
-            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
-                                   std::move(std::string(cannot_get_dev_type)));
+            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(sock_is_invalid)));
         }
     }
-    else
-    {
-        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(sock_is_invalid)));
-    }
-
     return res;
 }
 

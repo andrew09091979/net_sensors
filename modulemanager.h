@@ -34,7 +34,7 @@ void modulemanager<D>::register_receiver(internlmsgreceiver<D> *recv_)
 
     for (it = receivers.begin(); it != receivers.end(); ++it)
     {
-        D msg(INTNLMSG::RECV_DEVICE, 4, std::string("device added"));
+        D msg(INTNLMSG::RECV_BROADCAST, 4, std::string("[modulemanager] - device added"));
         *(*it) << msg;
     }
 }
@@ -63,13 +63,29 @@ void modulemanager<D>::get_receivers(const std::vector<INTNLMSG::RECEIVER> &iam_
 template <class D>
 void modulemanager<D>::deregister_receiver(internlmsgreceiver<D> *recv_)
 {
+    std::string module_ptr = std::string("[module to delete] = ") + std::to_string(int(recv_));
+    bool found_and_erased = false;
     std::lock_guard<std::mutex> lk(mtx);
-    typename std::vector<INTNLMSG::RECEIVER>::const_iterator it;
 
-    it = std::find(receivers.begin(), receivers.end(), recv);
+    internlmsgreceiver<D> *elem;
+    typename std::vector<internlmsgreceiver<D> *>::iterator it;
+
+    it = find(receivers.begin(), receivers.end(), recv_);
 
     if (it != receivers.end())
+    {
         receivers.erase(it);
+        found_and_erased = true;
+    }
+    if (found_and_erased)
+    {
+        typename std::vector<internlmsgreceiver<D> *>::iterator it;
+        for (it = receivers.begin(); it != receivers.end(); ++it)
+        {
+            D msg(INTNLMSG::RECV_BROADCAST, 5, module_ptr);
+            *(*it) << msg;
+        }
+    }
 }
 
 #endif // MODULEMANAGER_H

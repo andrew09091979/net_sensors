@@ -14,10 +14,10 @@ class deviceremconsole;
 template <class D>
 class internlmsgreceivr : public internlmsgreceiver<D>
 {
-    std::shared_ptr<device<D>> devptr;
+    device<D> *const dev;
 
 public:
-    internlmsgreceivr(device<D> * const dev_, INTNLMSG::RECEIVER iam_) : devptr(dev_),
+    internlmsgreceivr(device<D> * const dev_, INTNLMSG::RECEIVER iam_) : dev(dev_),
                                                                          internlmsgreceiver<D>(iam_)
     {
 
@@ -30,9 +30,9 @@ public:
 
     typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data)
     {
-        if (devptr != nullptr)
+        if (dev != nullptr)
         {
-            return devptr->HandleInternalMsg(std::move(data));
+            return dev->HandleInternalMsg(std::move(data));
         }
         else
         {
@@ -63,6 +63,7 @@ class deviceremconsole : public device<D>
     modulemanager<D> * const mod_mgr;
     std::shared_ptr<protocol<char> > protocol_dev;
     const std::string devName;
+    internlmsgreceivr<D> *imr_ptr;
 
 public:
     deviceremconsole(modulemanager<D> * const mod_mgr_,
@@ -95,10 +96,11 @@ template <class D>
 void deviceremconsole<D>::operator ()()
 {
     internlmsgreceivr<D> internalmsgreceiver(this, INTNLMSG::RECV_DEVICE);
-//    std::thread thrd = std::thread(std::reference_wrapper<internlmsgreceivr<D>>(internalmsgreceiver));
-    std::thread thrd = std::thread(internalmsgreceiver);
-//    mod_mgr->register_receiver(&this->internalmsgreceiver);
-    mod_mgr->register_receiver(&internalmsgreceiver);
+    imr_ptr = &internalmsgreceiver;
+    std::reference_wrapper<internlmsgreceivr<D> > rv = std::reference_wrapper<internlmsgreceivr<D> >(internalmsgreceiver);
+    std::thread thrd = std::thread(rv);
+    thrd.detach();
+    mod_mgr->register_receiver(imr_ptr);
     std::vector<INTNLMSG::RECEIVER> receivers_to_get;
     receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
     receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
@@ -160,6 +162,8 @@ void deviceremconsole<D>::operator ()()
                                        std::move(devName + std::string(" - shutdown")));
                 this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 0,
                                        std::move(devName + std::string(" - shutdown")));
+                mod_mgr->deregister_receiver(imr_ptr);
+                this->imr_ptr->stopthread();
                 //this->internalmsgreceiver << D(INTNLMSG::RECV_DEVICE, -1, std::move(std::string("exit")));
                 internalmsgreceiver << D(INTNLMSG::RECV_DEVICE, -1, std::move(std::string("exit")));
             }
@@ -169,8 +173,6 @@ void deviceremconsole<D>::operator ()()
             break;
         }
     }
-    if (thrd.joinable())
-        thrd.join();
 }
 
 template <class D>

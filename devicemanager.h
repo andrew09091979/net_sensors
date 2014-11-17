@@ -57,7 +57,7 @@ typename internlmsgreceiver<D>::HANDLE_RES devicemanager<D>::HandleMsg(D data)
                                  + std::to_string(numOfDevices));
     }
     this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::string(numOfDevs)
-                           + std::to_string(numOfDevices) + std::string("\n"));
+                           + std::to_string(numOfDevices));// + std::string("\n"));
 
     return internlmsgreceiver<D>::HANDLE_OK;
 }

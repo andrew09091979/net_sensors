@@ -87,12 +87,20 @@ void internlmsgreceiver<D>::operator ()()
     {
         std::unique_lock<std::mutex> lk(*mtx_p);
         data_cond_p->wait(lk, [&]{return !message_queue_p->empty();});
-        D data(std::move(message_queue_p->front()));
-        message_queue_p->pop();
-        lk.unlock();
 
-        if ((data.getreceiver() == iam)  || (data.getreceiver() == INTNLMSG::RECV_BROADCAST))
-            HandleMsg(std::move(data));
+        if (!stop)
+        {
+            D data(std::move(message_queue_p->front()));
+            message_queue_p->pop();
+            lk.unlock();
+
+            if ((data.getreceiver() == iam)  || (data.getreceiver() == INTNLMSG::RECV_BROADCAST))
+                HandleMsg(std::move(data));
+        }
+        else
+        {
+            stop = true;
+        }
     }
 }
 
