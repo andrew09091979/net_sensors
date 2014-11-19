@@ -5,9 +5,10 @@
 #include <mutex>
 #include <queue>
 #include <iostream>
-#include "modulemanager.h"
+//#include "modulemanager.h"
 #include "internlmsgreceiver.h"
 #include "internlmsg.h"
+#include "internlmsgrouter.h"
 
 template <class D>
 class WorkerDisplay : public internlmsgreceiver<D>

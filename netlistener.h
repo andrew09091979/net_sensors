@@ -7,9 +7,10 @@
 #include <netinet/in.h>
 #include <iostream>
 #include <vector>
-#include "modulemanager.h"
+//#include "modulemanager.h"
 #include "internlmsgreceiver.h"
 #include "internlmsg.h"
+#include "internlmsgrouter.h"
 #include "internlmsgsender.h"
 
 template<class D>
@@ -17,7 +18,7 @@ class netlistener : public internlmsgsender<D>
 {
     typedef internlmsgreceiver<D> WORKER;
     const INTNLMSG::RECEIVER iam;
-    const modulemanager<D> * const mod_mgr;
+//    const modulemanager<D> * const mod_mgr;
     const char * incoming_conn;
     const char * listen_started;
     const char * listen_error;
@@ -28,16 +29,16 @@ class netlistener : public internlmsgsender<D>
     bool stop;
 
 public:
-    netlistener(const modulemanager<D> * const mod_mgr_);
+    netlistener(internlmsgrouter<D> * const internlmsg_router_);
     void MainLoop();
 
     void operator()();
 };
 
 template<class D>
-netlistener<D>::netlistener(const modulemanager<D> * const mod_mgr_) :
+netlistener<D>::netlistener(internlmsgrouter<D> * const internlmsg_router_) :
+                                                    internlmsgsender<D>(internlmsg_router_),
                                                     iam(INTNLMSG::RECV_NETLISTENER),
-                                                    mod_mgr(mod_mgr_),
                                                     incoming_conn("[netlistener] incoming connection"),
                                                     listen_started("[netlistener] listening mode started"),
                                                     listen_error("[netlistener] listen error"),
@@ -46,10 +47,10 @@ netlistener<D>::netlistener(const modulemanager<D> * const mod_mgr_) :
                                                     accept_error("[netlistener] accept error"),
                                                     stop(false)
 {
-    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
-    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
-    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_NETCONNHANDLER);
-    mod_mgr->get_receivers(receivers_to_get, this->workers);
+//    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
+//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
+//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_NETCONNHANDLER);
+//    mod_mgr->get_receivers(receivers_to_get, this->workers);
 
     struct sockaddr_in addr;
     const int on = 1;

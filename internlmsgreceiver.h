@@ -78,6 +78,7 @@ void internlmsgreceiver<D>::MainLoop()
         if ((data.getreceiver() == iam) || (data.getreceiver() == INTNLMSG::RECV_BROADCAST))
             HandleMsg(data);
     }
+    std::cout << "[internlmsgreceiver] - stopped" << std::endl;
 }
 
 template<class D>
@@ -88,20 +89,21 @@ void internlmsgreceiver<D>::operator ()()
         std::unique_lock<std::mutex> lk(*mtx_p);
         data_cond_p->wait(lk, [&]{return !message_queue_p->empty();});
 
+        D data(std::move(message_queue_p->front()));
+        message_queue_p->pop();
+        lk.unlock();
+
         if (!stop)
         {
-            D data(std::move(message_queue_p->front()));
-            message_queue_p->pop();
-            lk.unlock();
-
-            if ((data.getreceiver() == iam)  || (data.getreceiver() == INTNLMSG::RECV_BROADCAST))
-                HandleMsg(std::move(data));
+//            if ((data.getreceiver() == iam)  || (data.getreceiver() == INTNLMSG::RECV_BROADCAST))
+            HandleMsg(std::move(data));
         }
         else
         {
-            stop = true;
+            break;
         }
     }
+    std::cout << "[internlmsgreceiver] - stopped" << std::endl;
 }
 
 template<class D>
@@ -114,6 +116,8 @@ template<class D>
 void internlmsgreceiver<D>::stopthread()
 {
     stop = true;
+    D dummy_msg = D(INTNLMSG::RECV_BROADCAST, -1, std::move(std::string("exit")));
+    EnqueMsg(dummy_msg);
 }
 
 #endif // WORKER_H

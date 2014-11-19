@@ -1,31 +1,52 @@
-#ifndef MODULEMANAGER_H
-#define MODULEMANAGER_H
+#ifndef INTERNLMSGROUTER_H
+#define INTERNLMSGROUTER_H
 
 #include <algorithm>
 #include "internlmsgreceiver.h"
 
 template <class D>
-class modulemanager
+class internlmsgrouter : public internlmsgreceiver<D>
 {
     std::vector<internlmsgreceiver<D> *> receivers;
     mutable std::mutex mtx;
 
 public:
-    modulemanager();
+    internlmsgrouter();
     void register_receiver(internlmsgreceiver<D> * recv_);
     void deregister_receiver(internlmsgreceiver<D> * recv_);
     void get_receivers(const std::vector<INTNLMSG::RECEIVER> &iam_,
                       std::vector<internlmsgreceiver<D> *>& tofill) const;
+    typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data);
 };
 
 template<class D>
-modulemanager<D>::modulemanager()
+internlmsgrouter<D>::internlmsgrouter() : internlmsgreceiver<D>(INTNLMSG::RECV_INTERNL_MSG_ROUTER)
 {
 
 }
 
 template<class D>
-void modulemanager<D>::register_receiver(internlmsgreceiver<D> *recv_)
+typename internlmsgreceiver<D>::HANDLE_RES internlmsgrouter<D>::HandleMsg(D data)
+{
+    typename internlmsgreceiver<D>::HANDLE_RES res = internlmsgreceiver<D>::HANDLE_FAILED;
+
+    std::lock_guard<std::mutex> lk(mtx);
+
+    typename std::vector<internlmsgreceiver<D> *>::const_iterator it;
+
+    for (it = receivers.begin(); it != receivers.end(); ++it)
+    {
+        if ((*it)->get_type() == data.getreceiver() || (data.getreceiver() == INTNLMSG::RECV_BROADCAST))
+        {
+            *(*it) << data;
+            res = internlmsgreceiver<D>::HANDLE_OK;
+        }
+    }
+    return res;
+}
+
+template<class D>
+void internlmsgrouter<D>::register_receiver(internlmsgreceiver<D> *recv_)
 {
     std::lock_guard<std::mutex> lk(mtx);
     receivers.push_back(recv_);
@@ -34,13 +55,13 @@ void modulemanager<D>::register_receiver(internlmsgreceiver<D> *recv_)
 
     for (it = receivers.begin(); it != receivers.end(); ++it)
     {
-        D msg(INTNLMSG::RECV_BROADCAST, 4, std::string("[modulemanager] - device added"));
+        D msg(INTNLMSG::RECV_BROADCAST, 4, std::string("[internlmsgrouter] - device added"));
         *(*it) << msg;
     }
 }
 
 template<class D>
-void modulemanager<D>::get_receivers(const std::vector<INTNLMSG::RECEIVER> &iam_,
+void internlmsgrouter<D>::get_receivers(const std::vector<INTNLMSG::RECEIVER> &iam_,
                                     std::vector<internlmsgreceiver<D> *> &tofill) const
 {
     typename std::vector<internlmsgreceiver<D> *>::const_iterator it;
@@ -61,10 +82,11 @@ void modulemanager<D>::get_receivers(const std::vector<INTNLMSG::RECEIVER> &iam_
 }
 
 template <class D>
-void modulemanager<D>::deregister_receiver(internlmsgreceiver<D> *recv_)
+void internlmsgrouter<D>::deregister_receiver(internlmsgreceiver<D> *recv_)
 {
     std::string module_ptr = std::string("[module to delete] = ") + std::to_string(int(recv_));
     bool found_and_erased = false;
+
     std::lock_guard<std::mutex> lk(mtx);
 
     internlmsgreceiver<D> *elem;
@@ -87,5 +109,4 @@ void modulemanager<D>::deregister_receiver(internlmsgreceiver<D> *recv_)
         }
     }
 }
-
-#endif // MODULEMANAGER_H
+#endif // INTERNLMSGROUTER_H

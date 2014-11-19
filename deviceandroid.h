@@ -7,7 +7,8 @@
 #include "arraywrapper.h"
 #include "internlmsgreceiver.h"
 #include "internlmsgsender.h"
-#include "modulemanager.h"
+#include "internlmsgrouter.h"
+//#include "modulemanager.h"
 #include "protocolandroiddev.h"
 #include "connectionhandler.h"
 
@@ -60,7 +61,8 @@ class deviceandroid : public device<D>
 
     typedef internlmsgreceiver<D> WORKER;
     typedef typename device<D>::INTMSGRES INTMSGRES;
-    modulemanager<D> * const mod_mgr;
+   // modulemanager<D> * const mod_mgr;
+    internlmsgrouter<D> * const internlmsg_router;
     std::shared_ptr<protocol<char> > protocol_dev;
     std::string dev_name;
     internlmsgreceivr *imr_ptr;
@@ -70,7 +72,7 @@ class deviceandroid : public device<D>
     std::string devName;
     std::string devCfg;
 public:
-    deviceandroid(modulemanager<D> * const mod_mgr_,
+    deviceandroid(internlmsgrouter<D> * const internlmsg_router_,
            std::shared_ptr<protocol<char> > protocol_);
     ~deviceandroid(){}
     void operator()();
@@ -78,8 +80,10 @@ public:
 };
 
 template <class D>
-deviceandroid<D>::deviceandroid(modulemanager<D> * const mod_mgr_,
-                  std::shared_ptr<protocol<char> > protocol_) : mod_mgr(mod_mgr_),
+deviceandroid<D>::deviceandroid(internlmsgrouter<D> * const internlmsg_router_,
+                                std::shared_ptr<protocol<char> > protocol_) :
+                                                              device<D>(internlmsg_router_),
+                                                              internlmsg_router(internlmsg_router_),
                                                               protocol_dev(protocol_),
                                                               stop(false),
                                                               state(INITIAL),
@@ -98,12 +102,11 @@ void deviceandroid<D>::operator()()
     imr_ptr = &internalmsgreceiver;
     std::reference_wrapper<internlmsgreceivr> rv = std::reference_wrapper<internlmsgreceivr>(internalmsgreceiver);
     std::thread thrd = std::thread(rv);
-    thrd.detach();
-    mod_mgr->register_receiver(imr_ptr);
-    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
-    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
-    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
-    mod_mgr->get_receivers(receivers_to_get, this->workers);
+    internlmsg_router->register_receiver(imr_ptr);
+//    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
+//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
+//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
+//    mod_mgr->get_receivers(receivers_to_get, this->workers);
 
     while(!stop)
     {
@@ -165,9 +168,12 @@ void deviceandroid<D>::operator()()
                                        std::move(devName + std::string("- shutdown")));
                 this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 0,
                                        std::move(devName + std::string("- shutdown")));
-                mod_mgr->deregister_receiver(imr_ptr);
+                internlmsg_router->deregister_receiver(imr_ptr);
                 this->imr_ptr->stopthread();
-                internalmsgreceiver << D(INTNLMSG::RECV_DEVICE, -1, std::move(std::string("exit")));
+
+                if (thrd.joinable())
+                    thrd.join();
+                //internalmsgreceiver << D(INTNLMSG::RECV_DEVICE, -1, std::move(std::string("exit")));
             }
             break;
         }

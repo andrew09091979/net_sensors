@@ -4,9 +4,10 @@
 #include <thread>
 #include <functional>
 #include "device.h"
-#include "modulemanager.h"
+//#include "modulemanager.h"
 #include "protocol.h"
 #include "internlmsgreceiver.h"
+#include "internlmsgrouter.h"
 
 template <class D>
 class deviceremconsole;
@@ -60,13 +61,14 @@ class deviceremconsole : public device<D>
     bool stop;
     STATE state;
 
-    modulemanager<D> * const mod_mgr;
+//    modulemanager<D> * const mod_mgr;
+    internlmsgrouter<D> * const internlmsg_router;
     std::shared_ptr<protocol<char> > protocol_dev;
     const std::string devName;
     internlmsgreceivr<D> *imr_ptr;
 
 public:
-    deviceremconsole(modulemanager<D> * const mod_mgr_,
+    deviceremconsole(internlmsgrouter<D> * const internlmsg_router_,
                     std::shared_ptr<protocol<char> > protocol_);
     ~deviceremconsole()
     {
@@ -77,14 +79,15 @@ public:
 };
 
 template <class D>
-deviceremconsole<D>::deviceremconsole(modulemanager<D> * const mod_mgr_,
+deviceremconsole<D>::deviceremconsole(internlmsgrouter<D> * const internlmsg_router_,
                                       std::shared_ptr<protocol<char> > protocol_) :
+                                                                   device<D>(internlmsg_router_),
                                                                    cmd_received("[remote console] - command received: "),
                                                                    unknown_cmd("[remote console] - unknown command\n"),
                                                                    num_of_devs_demanded("[remote console] - number of devices demanded\n"),
                                                                    stop(false),
                                                                    state(STATE::INITIAL),
-                                                                   mod_mgr(mod_mgr_),
+                                                                   internlmsg_router(internlmsg_router_),
                                                                    protocol_dev(protocol_),
                                                                    devName("remote console")
 {
@@ -100,11 +103,11 @@ void deviceremconsole<D>::operator ()()
     std::reference_wrapper<internlmsgreceivr<D> > rv = std::reference_wrapper<internlmsgreceivr<D> >(internalmsgreceiver);
     std::thread thrd = std::thread(rv);
     thrd.detach();
-    mod_mgr->register_receiver(imr_ptr);
-    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
-    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
-    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
-    mod_mgr->get_receivers(receivers_to_get, this->workers);
+    internlmsg_router->register_receiver(imr_ptr);
+//    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
+//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
+//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
+//    mod_mgr->get_receivers(receivers_to_get, this->workers);
 
     while (!stop)
     {
@@ -162,10 +165,10 @@ void deviceremconsole<D>::operator ()()
                                        std::move(devName + std::string(" - shutdown")));
                 this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 0,
                                        std::move(devName + std::string(" - shutdown")));
-                mod_mgr->deregister_receiver(imr_ptr);
+                internlmsg_router->deregister_receiver(imr_ptr);
                 this->imr_ptr->stopthread();
                 //this->internalmsgreceiver << D(INTNLMSG::RECV_DEVICE, -1, std::move(std::string("exit")));
-                internalmsgreceiver << D(INTNLMSG::RECV_DEVICE, -1, std::move(std::string("exit")));
+                //internalmsgreceiver << D(INTNLMSG::RECV_DEVICE, -1, std::move(std::string("exit")));
             }
             break;
 

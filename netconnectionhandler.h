@@ -5,9 +5,10 @@
 #include <queue>
 #include <condition_variable>
 #include <thread>
-#include "modulemanager.h"
+//#include "modulemanager.h"
 #include "internlmsgreceiver.h"
 #include "internlmsgsender.h"
+#include "internlmsgrouter.h"
 #include "internlmsg.h"
 #include "deviceandroid.h"
 #include "deviceremconsole.h"
@@ -19,7 +20,8 @@ template<class D>
 class netconnectionhandler : public internlmsgreceiver<D>, public internlmsgsender<D>
 {
     typedef internlmsgreceiver<D> WORKER;
-    modulemanager<D> * const mod_mgr;
+//    modulemanager<D> * const mod_mgr;
+    internlmsgrouter<D> * const internlmsg_router;
     const char * start_clientserv;
     const char * sock_is_invalid;
     const char * invalid_dev_type;
@@ -28,23 +30,24 @@ class netconnectionhandler : public internlmsgreceiver<D>, public internlmsgsend
 
 public:
     typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data);
-    netconnectionhandler(modulemanager<D> * const mod_mgr_);
+    netconnectionhandler(internlmsgrouter<D> * const internlmsg_router_);
     ~netconnectionhandler(){}
 };
 
 template<class D>
-netconnectionhandler<D>::netconnectionhandler(modulemanager<D> * const mod_mgr_) :
+netconnectionhandler<D>::netconnectionhandler(internlmsgrouter<D> * const internlmsg_router_) :
                                                     internlmsgreceiver<D>(INTNLMSG::RECV_NETCONNHANDLER),
-                                                    mod_mgr(mod_mgr_),
+                                                    internlmsgsender<D>(internlmsg_router_),
+                                                    internlmsg_router(internlmsg_router_),
                                                     start_clientserv("[netconnectionhandler] starting device"),
                                                     sock_is_invalid("[netconnectionhandler] socket is invalid"),
                                                     invalid_dev_type("[netconnectionhandler] invalid device type"),
                                                     cannot_get_dev_type("[netconnectionhandler] cannot get device type")
 {
-    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
-    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
-    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
-    mod_mgr->get_receivers(receivers_to_get, this->workers);
+//    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
+//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
+//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
+//    mod_mgr->get_receivers(receivers_to_get, this->workers);
 }
 
 template<class D>
@@ -69,7 +72,7 @@ typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D 
                     {
                         std::shared_ptr<connectionhandler> conn(new connectionhandler(sock));
                         std::shared_ptr<protocol<char>> prot(new protocolandroiddev(conn));
-                        deviceandroid<D> dev(mod_mgr, prot);
+                        deviceandroid<D> dev(internlmsg_router, prot);
 
                         this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
                                                std::move(std::string(start_clientserv)));
@@ -85,7 +88,7 @@ typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D 
                     {
                         std::shared_ptr<connectionhandler> conn(new connectionhandler(sock));
                         std::shared_ptr<protocol<char>> prot(new protocolremconsole(conn));
-                        deviceremconsole<D> dev(mod_mgr, prot);
+                        deviceremconsole<D> dev(internlmsg_router, prot);
 
                         this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
                                                std::move(std::string(start_clientserv)));

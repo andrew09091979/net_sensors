@@ -21,7 +21,6 @@ HEADERS += \
     internlmsg.h \
     internlmsgsender.h \
     internlmsgreceiver.h \
-    modulemanager.h \
     protocol.h \
     arraywrapper.h \
     protocolandroiddev.h \
@@ -30,5 +29,6 @@ HEADERS += \
     deviceandroid.h \
     devicemanager.h \
     deviceremconsole.h \
-    protocolremconsole.h
+    protocolremconsole.h \
+    internlmsgrouter.h
 

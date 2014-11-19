@@ -15,6 +15,7 @@ namespace INTNLMSG
         RECV_NETCONNHANDLER,
         RECV_DEVICE,
         RECV_DEVICE_MANAGER,
+        RECV_INTERNL_MSG_ROUTER,
         RECV_BROADCAST
     };
 }
