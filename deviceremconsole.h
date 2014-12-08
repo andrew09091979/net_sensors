@@ -4,7 +4,6 @@
 #include <thread>
 #include <functional>
 #include "device.h"
-//#include "modulemanager.h"
 #include "protocol.h"
 #include "internlmsgreceiver.h"
 #include "internlmsgrouter.h"
@@ -59,9 +58,8 @@ class deviceremconsole : public device<D>
     const char * num_of_devs_demanded;
     std::vector<std::string> commands;
     bool stop;
+    bool shutdown_ordered;
     STATE state;
-
-//    modulemanager<D> * const mod_mgr;
     internlmsgrouter<D> * const internlmsg_router;
     std::shared_ptr<protocol<char> > protocol_dev;
     const std::string devName;
@@ -102,15 +100,15 @@ void deviceremconsole<D>::operator ()()
     imr_ptr = &internalmsgreceiver;
     std::reference_wrapper<internlmsgreceivr<D> > rv = std::reference_wrapper<internlmsgreceivr<D> >(internalmsgreceiver);
     std::thread thrd = std::thread(rv);
-    thrd.detach();
     internlmsg_router->register_receiver(imr_ptr);
-//    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
-//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
-//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
-//    mod_mgr->get_receivers(receivers_to_get, this->workers);
 
     while (!stop)
     {
+        if (shutdown_ordered)
+        {
+            state = SHUTDOWN;
+        }
+
         switch (state)
         {
             case INITIAL:
@@ -129,7 +127,7 @@ void deviceremconsole<D>::operator ()()
                 std::string command;
                 protocol_dev->getCommand(1, command);
 
-                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                        std::move(std::string(cmd_received) + command));
 
                 if (command.compare(std::string("exit")) == 0)
@@ -138,14 +136,17 @@ void deviceremconsole<D>::operator ()()
                 }
                 else if(command.compare(std::string("devices")) == 0)
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(std::string("num_of_devs_demanded")));
-                    this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 3,
+                    this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::GET_NUM_OF_DEVS,
                                            std::move(std::string("num_of_devs_demanded")));
                 }
                 else if(command.compare(std::string("shutdown")) == 0)
                 {
-
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                                           std::move(std::string("shutdown")));
+                    this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::SHUTDOWN_ALL,
+                                           std::move(std::string("shutdown")));
                 }
                 else
                 {
@@ -161,14 +162,15 @@ void deviceremconsole<D>::operator ()()
             {
                 stop = true;
                 protocol_dev->shutdown();
-                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                        std::move(devName + std::string(" - shutdown")));
-                this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 0,
+                this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_SHUTDOWN,
                                        std::move(devName + std::string(" - shutdown")));
                 internlmsg_router->deregister_receiver(imr_ptr);
                 this->imr_ptr->stopthread();
-                //this->internalmsgreceiver << D(INTNLMSG::RECV_DEVICE, -1, std::move(std::string("exit")));
-                //internalmsgreceiver << D(INTNLMSG::RECV_DEVICE, -1, std::move(std::string("exit")));
+
+                if (thrd.joinable())
+                    thrd.join();
             }
             break;
 
@@ -186,13 +188,13 @@ typename deviceremconsole<D>::INTMSGRES deviceremconsole<D>::HandleInternalMsg(D
 
     switch (command)
     {
-        case -1:
+        case INTNLMSG::SHUTDOWN_ALL:
         {
-            //this->internalmsgreceiver.stopthread();
+            shutdown_ordered = true;
         }
         break;
 
-        case 3://num_of_devs_demanded
+        case INTNLMSG::GET_NUM_OF_DEVS://num_of_devs_demanded
         {
             arraywrapper<char> msg(data.getsize());
             memcpy(msg.at(0), data.getmsg(), data.getsize());

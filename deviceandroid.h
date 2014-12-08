@@ -8,7 +8,6 @@
 #include "internlmsgreceiver.h"
 #include "internlmsgsender.h"
 #include "internlmsgrouter.h"
-//#include "modulemanager.h"
 #include "protocolandroiddev.h"
 #include "connectionhandler.h"
 
@@ -38,6 +37,7 @@ class deviceandroid : public device<D>
     {
         INITIAL,
         WORK,
+        SLEEP,
         SHUTDOWN
     };
 
@@ -61,12 +61,12 @@ class deviceandroid : public device<D>
 
     typedef internlmsgreceiver<D> WORKER;
     typedef typename device<D>::INTMSGRES INTMSGRES;
-   // modulemanager<D> * const mod_mgr;
     internlmsgrouter<D> * const internlmsg_router;
     std::shared_ptr<protocol<char> > protocol_dev;
     std::string dev_name;
     internlmsgreceivr *imr_ptr;
     bool stop;
+    bool shutdown_ordered;
     STATE state;
     DEVCFG devConfig;
     std::string devName;
@@ -86,6 +86,7 @@ deviceandroid<D>::deviceandroid(internlmsgrouter<D> * const internlmsg_router_,
                                                               internlmsg_router(internlmsg_router_),
                                                               protocol_dev(protocol_),
                                                               stop(false),
+                                                              shutdown_ordered(false),
                                                               state(INITIAL),
                                                               imr_ptr(nullptr),
                                                               //state(WORK),
@@ -103,38 +104,39 @@ void deviceandroid<D>::operator()()
     std::reference_wrapper<internlmsgreceivr> rv = std::reference_wrapper<internlmsgreceivr>(internalmsgreceiver);
     std::thread thrd = std::thread(rv);
     internlmsg_router->register_receiver(imr_ptr);
-//    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
-//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
-//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
-//    mod_mgr->get_receivers(receivers_to_get, this->workers);
 
     while(!stop)
     {
+        if (shutdown_ordered)
+        {
+            state = SHUTDOWN;
+        }
+
         switch (state)
         {
             case INITIAL:
             {
                 if (protocol_dev->getDeviceName(devName) == -1)
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - can't get device name")));
                     state = SHUTDOWN;
                 }
                 else
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - got device name")));
                     state = WORK;
                 }
                 if (protocol_dev->getDeviceConfig(devCfg) == -1)
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - can't get device name")));
                     state = SHUTDOWN;
                 }
                 else
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - got device config - ") + devCfg));
                     state = WORK;
                 }
@@ -147,33 +149,38 @@ void deviceandroid<D>::operator()()
 
                 if (protocol_dev->getData(0, data) == -1)
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - can't get data")));
                     state = SHUTDOWN;
                 }
                 else
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
-                                           std::move(devName + std::string(" - ") +
+                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                                           std::move(devName + std::string("\n") +
                                                      std::string(data.at(0))));
+                    state = SLEEP;
                 }
             }
             break;
-
+            case SLEEP:
+            {
+                sleep(1);
+                state = WORK;
+            }
+            break;
             case SHUTDOWN:
             {
                 protocol_dev->shutdown();
                 stop = true;
-                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                        std::move(devName + std::string("- shutdown")));
-                this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 0,
+                this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_SHUTDOWN,
                                        std::move(devName + std::string("- shutdown")));
                 internlmsg_router->deregister_receiver(imr_ptr);
                 this->imr_ptr->stopthread();
 
                 if (thrd.joinable())
                     thrd.join();
-                //internalmsgreceiver << D(INTNLMSG::RECV_DEVICE, -1, std::move(std::string("exit")));
             }
             break;
         }
@@ -188,13 +195,13 @@ typename deviceandroid<D>::INTMSGRES deviceandroid<D>::HandleInternalMsg(D data)
 
     switch (command)
     {
-        case -1:
+        case INTNLMSG::SHUTDOWN_ALL:
         {
-            this->imr_ptr->stopthread();
+            shutdown_ordered = true;
         }
         break;
 
-        case 3://num_of_devs_demanded
+        case INTNLMSG::GET_NUM_OF_DEVS://num_of_devs_demanded
         {
         }
         break;

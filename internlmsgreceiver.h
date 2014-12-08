@@ -17,7 +17,7 @@ protected:
     std::shared_ptr<std::queue<D>> message_queue_p;
     std::shared_ptr<std::condition_variable> data_cond_p;
     bool stop;
-
+    unsigned long address;
 public:
 
     enum HANDLE_RES
@@ -74,9 +74,7 @@ void internlmsgreceiver<D>::MainLoop()
         D data=message_queue_p->front();
         message_queue_p->pop();
         lk.unlock();
-
-        if ((data.getreceiver() == iam) || (data.getreceiver() == INTNLMSG::RECV_BROADCAST))
-            HandleMsg(data);
+        HandleMsg(data);
     }
     std::cout << "[internlmsgreceiver] - stopped" << std::endl;
 }
@@ -95,7 +93,6 @@ void internlmsgreceiver<D>::operator ()()
 
         if (!stop)
         {
-//            if ((data.getreceiver() == iam)  || (data.getreceiver() == INTNLMSG::RECV_BROADCAST))
             HandleMsg(std::move(data));
         }
         else

@@ -18,6 +18,14 @@ namespace INTNLMSG
         RECV_INTERNL_MSG_ROUTER,
         RECV_BROADCAST
     };
+    enum MSG_TYPE
+    {
+        SHOW_MESSAGE,
+        DEVICE_ADDED,
+        DEVICE_SHUTDOWN,
+        GET_NUM_OF_DEVS,
+        SHUTDOWN_ALL
+    };
 }
 class internlmsg
 {

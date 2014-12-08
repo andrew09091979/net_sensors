@@ -5,7 +5,6 @@
 #include <queue>
 #include <condition_variable>
 #include <thread>
-//#include "modulemanager.h"
 #include "internlmsgreceiver.h"
 #include "internlmsgsender.h"
 #include "internlmsgrouter.h"
@@ -20,7 +19,6 @@ template<class D>
 class netconnectionhandler : public internlmsgreceiver<D>, public internlmsgsender<D>
 {
     typedef internlmsgreceiver<D> WORKER;
-//    modulemanager<D> * const mod_mgr;
     internlmsgrouter<D> * const internlmsg_router;
     const char * start_clientserv;
     const char * sock_is_invalid;
@@ -44,10 +42,6 @@ netconnectionhandler<D>::netconnectionhandler(internlmsgrouter<D> * const intern
                                                     invalid_dev_type("[netconnectionhandler] invalid device type"),
                                                     cannot_get_dev_type("[netconnectionhandler] cannot get device type")
 {
-//    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
-//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
-//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE_MANAGER);
-//    mod_mgr->get_receivers(receivers_to_get, this->workers);
 }
 
 template<class D>
@@ -74,9 +68,9 @@ typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D 
                         std::shared_ptr<protocol<char>> prot(new protocolandroiddev(conn));
                         deviceandroid<D> dev(internlmsg_router, prot);
 
-                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                                std::move(std::string(start_clientserv)));
-                        this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 1,
+                        this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_ADDED,
                                                std::move(std::string(start_clientserv)));
                         //std::thread thr = std::thread(std::reference_wrapper<deviceandroid<D>>(dev));
                         std::thread thr = std::thread(dev);
@@ -90,9 +84,9 @@ typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D 
                         std::shared_ptr<protocol<char>> prot(new protocolremconsole(conn));
                         deviceremconsole<D> dev(internlmsg_router, prot);
 
-                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                                std::move(std::string(start_clientserv)));
-                        this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, 1,
+                        this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_ADDED,
                                                std::move(std::string(start_clientserv)));
                         //std::thread thr = std::thread(std::reference_wrapper<deviceremconsole<D>>(dev));
                         std::thread thr = std::thread(dev);
@@ -101,20 +95,20 @@ typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D 
                     }
                     break;
                     default:
-                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                                std::move(std::string(invalid_dev_type)));
                     break;
                 }
             }
             else
             {
-                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0,
+                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                        std::move(std::string(cannot_get_dev_type)));
             }
         }
         else
         {
-            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(sock_is_invalid)));
+            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::move(std::string(sock_is_invalid)));
         }
     }
     return res;

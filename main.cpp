@@ -7,7 +7,6 @@
 #include "netlistener.h"
 #include "netconnectionhandler.h"
 #include "workerdisplay.h"
-//#include "modulemanager.h"
 #include "devicemanager.h"
 
 using namespace std;
@@ -15,7 +14,6 @@ typedef internlmsg MESSAGE_TYPE;
 typedef netlistener<MESSAGE_TYPE>& NETLISTENER_TYPE_REF;
 typedef netlistener<MESSAGE_TYPE>* NETLISTENER_TYPE_PTR;
 
-//typedef modulemanager<MESSAGE_TYPE> MODULE_MANAGER_T;
 typedef WorkerDisplay<MESSAGE_TYPE> WORKER_DISPLAY_T;
 typedef devicemanager<MESSAGE_TYPE> DEVICE_MANAGER_T;
 typedef netconnectionhandler<MESSAGE_TYPE> NETCONN_HANDLER_T;
@@ -30,7 +28,6 @@ typedef std::reference_wrapper<INTERNL_MSG_ROUTER_T> INTERNL_MSG_ROUTER_REF;
 int main()
 {
     INTERNL_MSG_ROUTER_T intrnl_msg_router;
-//    MODULE_MANAGER_T module_mgr;
     WORKER_DISPLAY_T display;
     intrnl_msg_router.register_receiver(&display);
     DEVICE_MANAGER_T devMgr(&intrnl_msg_router);

@@ -5,14 +5,13 @@
 #include "internlmsgsender.h"
 #include "internlmsgrouter.h"
 #include "internlmsg.h"
-//#include "modulemanager.h"
 
 template<class D>
 class devicemanager  : public internlmsgreceiver<D>, public internlmsgsender<D>
 {
-//    const inter<D> * const mod_mgr;
     int numOfDevices;
     const char *numOfDevs;
+    const char *shutdown;
 
     bool stop;
 public:
@@ -26,11 +25,9 @@ devicemanager<D>::devicemanager(internlmsgrouter<D> * const internlmsg_router_):
                                         internlmsgreceiver<D>(INTNLMSG::RECV_DEVICE_MANAGER),
                                         internlmsgsender<D>(internlmsg_router_),
                                         numOfDevices(0),
-                                        numOfDevs("[device manager] number of devices: ")
+                                        numOfDevs("[device manager] number of devices: "),
+                                        shutdown("[device manager] shutting down application")
 {
-//    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
-//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
-//    mod_mgr->get_receivers(receivers_to_get, this->workers);
 }
 
 template<class D>
@@ -38,27 +35,24 @@ typename internlmsgreceiver<D>::HANDLE_RES devicemanager<D>::HandleMsg(D data)
 {
     int whatHappened = data.getval();
 
-    if (whatHappened == 0)//devive closed
+    if (whatHappened == INTNLMSG::DEVICE_SHUTDOWN)//devive closed
     {
         --numOfDevices;
     }
-    else if(whatHappened == 1)//device connected
+    else if(whatHappened == INTNLMSG::DEVICE_ADDED)//device connected
     {
         ++numOfDevices;
     }
-    else if(whatHappened == 3)//remote console asked number of devices
+    else if(whatHappened == INTNLMSG::GET_NUM_OF_DEVS)//remote console asked number of devices
     {
-//        this->workers.clear();
-//        std::vector<INTNLMSG::RECEIVER> receivers_to_get;
-//        receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
-//        receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DEVICE);
-//        mod_mgr->get_receivers(receivers_to_get, this->workers);
-
-        this->send_internl_msg(INTNLMSG::RECV_DEVICE, 3, std::string(numOfDevs)
-                                 + std::to_string(numOfDevices));
+        this->send_internl_msg(INTNLMSG::RECV_DEVICE, INTNLMSG::GET_NUM_OF_DEVS,
+                               std::string(numOfDevs) + std::to_string(numOfDevices));
     }
-    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::string(numOfDevs)
-                           + std::to_string(numOfDevices));// + std::string("\n"));
+    else if(whatHappened == INTNLMSG::SHUTDOWN_ALL)//remote console ordered to shutdown application
+    {
+        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::string(shutdown));
+        this->send_internl_msg(INTNLMSG::RECV_DEVICE, INTNLMSG::SHUTDOWN_ALL, std::string(shutdown));
+    }
 
     return internlmsgreceiver<D>::HANDLE_OK;
 }

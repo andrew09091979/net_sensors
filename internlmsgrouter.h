@@ -55,8 +55,12 @@ void internlmsgrouter<D>::register_receiver(internlmsgreceiver<D> *recv_)
 
     for (it = receivers.begin(); it != receivers.end(); ++it)
     {
-        D msg(INTNLMSG::RECV_BROADCAST, 4, std::string("[internlmsgrouter] - device added"));
-        *(*it) << msg;
+        if ((*it)->get_type() == INTNLMSG::RECV_DISPLAY)
+        {
+            D msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                  std::string("[internlmsgrouter] - device added"));
+            *(*it) << msg;
+        }
     }
 }
 
@@ -104,8 +108,12 @@ void internlmsgrouter<D>::deregister_receiver(internlmsgreceiver<D> *recv_)
         typename std::vector<internlmsgreceiver<D> *>::iterator it;
         for (it = receivers.begin(); it != receivers.end(); ++it)
         {
-            D msg(INTNLMSG::RECV_BROADCAST, 5, module_ptr);
-            *(*it) << msg;
+            if ((*it)->get_type() == INTNLMSG::RECV_DISPLAY)
+            {
+                D msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                      std::string("[internlmsgrouter] - device removed"));
+                *(*it) << msg;
+            }
         }
     }
 }

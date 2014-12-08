@@ -47,11 +47,6 @@ netlistener<D>::netlistener(internlmsgrouter<D> * const internlmsg_router_) :
                                                     accept_error("[netlistener] accept error"),
                                                     stop(false)
 {
-//    std::vector<INTNLMSG::RECEIVER> receivers_to_get;
-//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_DISPLAY);
-//    receivers_to_get.push_back(INTNLMSG::RECEIVER::RECV_NETCONNHANDLER);
-//    mod_mgr->get_receivers(receivers_to_get, this->workers);
-
     struct sockaddr_in addr;
     const int on = 1;
     addr.sin_family = AF_INET;
@@ -71,21 +66,25 @@ netlistener<D>::netlistener(internlmsgrouter<D> * const internlmsg_router_) :
             // change socket's state to LISTEN
             if (listen(sockToListen, 5) != -1)
             {
-                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(listen_started)));
+                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                                       std::move(std::string(listen_started)));
             }
             else
             {
-                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(listen_error)));
+                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                                       std::move(std::string(listen_error)));
             }
         }
         else
         {
-            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(bind_error)));
+            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                                   std::move(std::string(bind_error)));
         }
     }
     else
     {
-        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(sock_creation_error)));
+        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                               std::move(std::string(sock_creation_error)));
     }
 }
 
@@ -108,12 +107,13 @@ void netlistener<D>::operator()()
 
         if (sock != -1)
         {
-            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(incoming_conn)));
+            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                                   std::move(std::string(incoming_conn)));
             this->send_internl_msg(INTNLMSG::RECV_NETCONNHANDLER, sock, std::move(std::string(incoming_conn)));
         }
         else
         {
-            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, 0, std::move(std::string(accept_error)));
+            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::move(std::string(accept_error)));
 
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {

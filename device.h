@@ -13,8 +13,9 @@ protected:
     typedef typename internlmsgreceiver<D>::HANDLE_RES INTMSGRES;
     typedef internlmsgreceiver<D> WORKER;
     internlmsgrouter<D> *internlmsg_router;
+    unsigned int pollperiod;
 public:
-    device(internlmsgrouter<D> * const internlmsg_router_) : internlmsgsender<D>(internlmsg_router_){}
+    device(internlmsgrouter<D> * const internlmsg_router_) : internlmsgsender<D>(internlmsg_router_), pollperiod(1){}
     virtual void operator()() = 0;
     virtual INTMSGRES HandleInternalMsg(D data) = 0;
     virtual ~device() {}
