@@ -84,6 +84,7 @@ deviceremconsole<D>::deviceremconsole(internlmsgrouter<D> * const internlmsg_rou
                                                                    unknown_cmd("[remote console] - unknown command\n"),
                                                                    num_of_devs_demanded("[remote console] - number of devices demanded\n"),
                                                                    stop(false),
+                                                                   shutdown_ordered(false),
                                                                    state(STATE::INITIAL),
                                                                    internlmsg_router(internlmsg_router_),
                                                                    protocol_dev(protocol_),
