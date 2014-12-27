@@ -46,8 +46,9 @@ class deviceandroid : public device<D>
         device<D> *const dev;
 
     public:
-        internlmsgreceivr(device<D> *const dev_, INTNLMSG::RECEIVER iam_) : dev(dev_),
-                                                                             internlmsgreceiver<D>(iam_)
+        internlmsgreceivr(device<D> *const dev_, INTNLMSG::RECEIVER iam_) : internlmsgreceiver<D>(iam_),
+                                                                            dev(dev_)
+
         {
         }
 
@@ -85,11 +86,10 @@ deviceandroid<D>::deviceandroid(internlmsgrouter<D> * const internlmsg_router_,
                                                               device<D>(internlmsg_router_),
                                                               internlmsg_router(internlmsg_router_),
                                                               protocol_dev(protocol_),
+                                                              imr_ptr(nullptr),
                                                               stop(false),
                                                               shutdown_ordered(false),
                                                               state(INITIAL),
-                                                              imr_ptr(nullptr),
-                                                              //state(WORK),
                                                               devName("Unknown device")
 {
 

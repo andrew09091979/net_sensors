@@ -17,8 +17,9 @@ class internlmsgreceivr : public internlmsgreceiver<D>
     device<D> *const dev;
 
 public:
-    internlmsgreceivr(device<D> * const dev_, INTNLMSG::RECEIVER iam_) : dev(dev_),
-                                                                         internlmsgreceiver<D>(iam_)
+    internlmsgreceivr(device<D> * const dev_, INTNLMSG::RECEIVER iam_) : internlmsgreceiver<D>(iam_),
+                                                                         dev(dev_)
+
     {
 
     }

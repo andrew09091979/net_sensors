@@ -106,7 +106,7 @@ void internlmsgrouter<D>::deregister_receiver(internlmsgreceiver<D> *recv_)
 
     std::lock_guard<std::mutex> lk(mtx);
 
-    internlmsgreceiver<D> *elem;
+//    internlmsgreceiver<D> *elem;
     typename std::vector<internlmsgreceiver<D> *>::iterator it;
 
     it = find(receivers.begin(), receivers.end(), recv_);

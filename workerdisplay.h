@@ -22,8 +22,8 @@ public:
 
 template<class D>
 WorkerDisplay<D>::WorkerDisplay(internlmsgrouter<D> * const internlmsg_router_) :
-                                                                    internlmsg_router(internlmsg_router_),
-                                                                    internlmsgreceiver<D>(INTNLMSG::RECV_DISPLAY)
+                                                                    internlmsgreceiver<D>(INTNLMSG::RECV_DISPLAY),
+                                                                    internlmsg_router(internlmsg_router_)
 {
 }
 
