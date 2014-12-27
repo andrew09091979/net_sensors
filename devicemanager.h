@@ -13,7 +13,7 @@ class devicemanager  : public internlmsgreceiver<D>, public internlmsgsender<D>
     const char *numOfDevs;
     const char *shutdown;
 
-    bool stop;
+    bool stop;    
 public:
     devicemanager(internlmsgrouter<D> * const internlmsg_router_);
     typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data);
@@ -50,8 +50,12 @@ typename internlmsgreceiver<D>::HANDLE_RES devicemanager<D>::HandleMsg(D data)
     }
     else if(whatHappened == INTNLMSG::SHUTDOWN_ALL)//remote console ordered to shutdown application
     {
-        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::string(shutdown));
-        this->send_internl_msg(INTNLMSG::RECV_DEVICE, INTNLMSG::SHUTDOWN_ALL, std::string(shutdown));
+        this->internlmsg_router->deregister_receiver(this);
+        this->send_internl_msg(INTNLMSG::RECV_BROADCAST, INTNLMSG::SHUTDOWN_ALL, std::string(shutdown));
+//        this->send_internl_msg(INTNLMSG::RECV_NETLISTENER, INTNLMSG::SHUTDOWN_ALL, std::string(shutdown));
+//        this->send_internl_msg(INTNLMSG::RECV_DEVICE, INTNLMSG::SHUTDOWN_ALL, std::string(shutdown));
+//        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::string(shutdown));
+        this->stopthread();
     }
 
     return internlmsgreceiver<D>::HANDLE_OK;

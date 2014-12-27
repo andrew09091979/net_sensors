@@ -42,6 +42,19 @@ typename internlmsgreceiver<D>::HANDLE_RES internlmsgrouter<D>::HandleMsg(D data
             res = internlmsgreceiver<D>::HANDLE_OK;
         }
     }
+    if (data.getreceiver() == INTNLMSG::RECV_BROADCAST)
+    {
+        int command = data.getval();
+
+        switch (command)
+        {
+            case INTNLMSG::SHUTDOWN_ALL:
+            {
+                this->stopthread();
+            }
+            break;
+        }
+    }
     return res;
 }
 

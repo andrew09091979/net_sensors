@@ -111,6 +111,25 @@ typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D 
             this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::move(std::string(sock_is_invalid)));
         }
     }
+    else if (data.getreceiver() == INTNLMSG::RECV_BROADCAST)
+    {
+        int command = data.getval();
+
+        switch (command)
+        {
+            case INTNLMSG::SHUTDOWN_ALL:
+            {
+                internlmsg_router->deregister_receiver(this);
+                this->stopthread();
+            }
+            break;
+
+            case INTNLMSG::GET_NUM_OF_DEVS://num_of_devs_demanded
+            {
+            }
+            break;
+        }
+    }
     return res;
 }
 

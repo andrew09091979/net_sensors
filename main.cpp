@@ -28,7 +28,7 @@ typedef std::reference_wrapper<INTERNL_MSG_ROUTER_T> INTERNL_MSG_ROUTER_REF;
 int main()
 {
     INTERNL_MSG_ROUTER_T intrnl_msg_router;
-    WORKER_DISPLAY_T display;
+    WORKER_DISPLAY_T display(&intrnl_msg_router);
     intrnl_msg_router.register_receiver(&display);
     DEVICE_MANAGER_T devMgr(&intrnl_msg_router);
     intrnl_msg_router.register_receiver(&devMgr);
@@ -39,12 +39,12 @@ int main()
     std::thread inl_msg_router_thrd = std::thread(INTERNL_MSG_ROUTER_REF(intrnl_msg_router));
     std::thread devmgr_thrd = std::thread(DEVICE_MANAGER_REF(devMgr));
     std::thread conn_thrd = std::thread(NETCONN_HANDLER_REF(netConnHandler));
-    std::thread main_thrd = std::thread(NETLISTENER_REF(netlisten));
+    std::thread netlisten_thrd = std::thread(NETLISTENER_REF(netlisten));
     std::thread disp_thrd = std::thread(WORKER_DISPLAY_REF(display));
 
+    netlisten_thrd.join();
     devmgr_thrd.join();
     conn_thrd.join();
-    main_thrd.join();
     disp_thrd.join();
     inl_msg_router_thrd.join();
     return 0;
