@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <unistd.h>
 #include "device.h"
 #include "arraywrapper.h"
 #include "internlmsgreceiver.h"

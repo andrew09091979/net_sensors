@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <iostream>
 #include <vector>
+#include <unistd.h>
 //#include "modulemanager.h"
 #include "internlmsgreceiver.h"
 #include "internlmsg.h"
