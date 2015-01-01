@@ -38,7 +38,6 @@ class netlistener : public internlmsgsender<D>
     };
 
     const INTNLMSG::RECEIVER iam;
-//    const modulemanager<D> * const mod_mgr;
     const char * incoming_conn;
     const char * listen_started;
     const char * listen_error;

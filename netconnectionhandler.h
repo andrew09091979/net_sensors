@@ -42,6 +42,7 @@ netconnectionhandler<D>::netconnectionhandler(internlmsgrouter<D> * const intern
                                                     invalid_dev_type("[netconnectionhandler] invalid device type"),
                                                     cannot_get_dev_type("[netconnectionhandler] cannot get device type")
 {
+    internlmsg_router->register_receiver(this);
 }
 
 template<class D>

@@ -29,11 +29,11 @@ int main()
 {
     INTERNL_MSG_ROUTER_T intrnl_msg_router;
     WORKER_DISPLAY_T display(&intrnl_msg_router);
-    intrnl_msg_router.register_receiver(&display);
+//    intrnl_msg_router.register_receiver(&display);
     DEVICE_MANAGER_T devMgr(&intrnl_msg_router);
-    intrnl_msg_router.register_receiver(&devMgr);
+//    intrnl_msg_router.register_receiver(&devMgr);
     NETCONN_HANDLER_T netConnHandler(&intrnl_msg_router);
-    intrnl_msg_router.register_receiver(&netConnHandler);
+//    intrnl_msg_router.register_receiver(&netConnHandler);
     NETLISTENER_T netlisten(&intrnl_msg_router);
 
     std::thread inl_msg_router_thrd = std::thread(INTERNL_MSG_ROUTER_REF(intrnl_msg_router));

@@ -10,6 +10,7 @@ template<class D>
 class devicemanager  : public internlmsgreceiver<D>, public internlmsgsender<D>
 {
     int numOfDevices;
+    internlmsgrouter<D> * const internlmsg_router;
     const char *numOfDevs;
     const char *shutdown;
 
@@ -25,9 +26,11 @@ devicemanager<D>::devicemanager(internlmsgrouter<D> * const internlmsg_router_):
                                         internlmsgreceiver<D>(INTNLMSG::RECV_DEVICE_MANAGER),
                                         internlmsgsender<D>(internlmsg_router_),
                                         numOfDevices(0),
+                                        internlmsg_router(internlmsg_router_),
                                         numOfDevs("[device manager] number of devices: "),
                                         shutdown("[device manager] shutting down application")
 {
+    internlmsg_router->register_receiver(this);
 }
 
 template<class D>

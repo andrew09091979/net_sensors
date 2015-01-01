@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <iostream>
 #include "internlmsg.h"
+//#include "device.h"
 
 template <class D>
 class internlmsgreceiver
@@ -18,6 +19,7 @@ protected:
     std::shared_ptr<std::condition_variable> data_cond_p;
     bool stop;
     unsigned long address;
+    std::string myname;
 public:
 
     enum HANDLE_RES
@@ -38,6 +40,7 @@ public:
     virtual void operator ()();
     virtual HANDLE_RES HandleMsg(D data) = 0;
     INTNLMSG::RECEIVER get_type() const;
+    std::string getname() const;
     void stopthread();
 };
 
@@ -116,5 +119,37 @@ void internlmsgreceiver<D>::stopthread()
     D dummy_msg = D(INTNLMSG::RECV_BROADCAST, -1, std::move(std::string("exit")));
     EnqueMsg(dummy_msg);
 }
+
+template <class D>
+std::string internlmsgreceiver<D>::getname() const
+{
+    return myname;
+}
+
+//template <class X>
+//class XYZ
+//{
+
+//};
+
+//template <class D>
+//class internalmsgreceiver_dev : public internlmsgreceiver<D>
+//{
+//    device<D> *const dev;
+
+//public:
+//    internalmsgreceiver_dev(device<D> *const dev_, INTNLMSG::RECEIVER iam_) : internlmsgreceiver<D>(iam_),
+//                                                                        dev(dev_)
+
+//    {
+//    }
+
+//    typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data)
+//    {
+//        typename internlmsgreceiver<D>::HANDLE_RES res;
+//        res = dev->HandleInternalMsg(std::move(data));
+//        return res;
+//    }
+//};
 
 #endif // WORKER_H

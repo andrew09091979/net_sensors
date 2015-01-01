@@ -71,7 +71,8 @@ void internlmsgrouter<D>::register_receiver(internlmsgreceiver<D> *recv_)
         if ((*it)->get_type() == INTNLMSG::RECV_DISPLAY)
         {
             D msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
-                  std::string("[internlmsgrouter] - device added"));
+                  std::string("[internlmsgrouter] - device of type #") + std::to_string(int(recv_->get_type()))
+                                + std::string(" registered"));
             *(*it) << msg;
         }
     }
@@ -101,7 +102,7 @@ void internlmsgrouter<D>::get_receivers(const std::vector<INTNLMSG::RECEIVER> &i
 template <class D>
 void internlmsgrouter<D>::deregister_receiver(internlmsgreceiver<D> *recv_)
 {
-    std::string module_ptr = std::string("[module to delete] = ") + std::to_string(int(recv_));
+//    std::string module_ptr = std::string("[internlmsgrouter] = ") + std::to_string(int(recv_));
     bool found_and_erased = false;
 
     std::lock_guard<std::mutex> lk(mtx);
@@ -124,7 +125,8 @@ void internlmsgrouter<D>::deregister_receiver(internlmsgreceiver<D> *recv_)
             if ((*it)->get_type() == INTNLMSG::RECV_DISPLAY)
             {
                 D msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
-                      std::string("[internlmsgrouter] - device removed"));
+                      std::string("[internlmsgrouter] - device of type #") + std::to_string(int(recv_->get_type()))
+                                    + std::string(" removed"));
                 *(*it) << msg;
             }
         }

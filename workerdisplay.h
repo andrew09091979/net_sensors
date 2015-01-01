@@ -25,6 +25,7 @@ WorkerDisplay<D>::WorkerDisplay(internlmsgrouter<D> * const internlmsg_router_) 
                                                                     internlmsgreceiver<D>(INTNLMSG::RECV_DISPLAY),
                                                                     internlmsg_router(internlmsg_router_)
 {
+    internlmsg_router->register_receiver(this);
 }
 
 template<class D>
