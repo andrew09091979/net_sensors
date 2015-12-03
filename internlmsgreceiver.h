@@ -31,7 +31,10 @@ public:
     internlmsgreceiver(INTNLMSG::RECEIVER iam_) : iam(iam_), mtx_p(new std::mutex),
                                                   message_queue_p(new std::queue<D>),
                                                   data_cond_p(new std::condition_variable),
-                                                  stop(false){}
+                                                  stop(false)
+    {
+        myname = INTNLMSG::receivers_names[iam];
+    }
 
     virtual ~internlmsgreceiver();
     void EnqueMsg(D data);
@@ -70,16 +73,16 @@ void internlmsgreceiver<D>::EnqueMsg(D data)
 template<class D>
 void internlmsgreceiver<D>::MainLoop()
 {
-    while(!stop)
-    {
-        std::unique_lock<std::mutex> lk(*mtx_p);
-        data_cond_p->wait(lk, [&]{return !message_queue_p->empty();});
-        D data=message_queue_p->front();
-        message_queue_p->pop();
-        lk.unlock();
-        HandleMsg(data);
-    }
-    std::cout << "[internlmsgreceiver] - stopped" << std::endl;
+//    while(!stop)
+//    {
+//        std::unique_lock<std::mutex> lk(*mtx_p);
+//        data_cond_p->wait(lk, [&]{return !message_queue_p->empty();});
+//        D data=message_queue_p->front();
+//        message_queue_p->pop();
+//        lk.unlock();
+//        HandleMsg(data);
+//    }
+//    std::cout << "[internlmsgreceiver] " << myname << " stopped" << std::endl;
 }
 
 template<class D>
@@ -100,10 +103,10 @@ void internlmsgreceiver<D>::operator ()()
         }
         else
         {
-            break;
+            std::cout << "closing main thread of " + myname << std::endl;
+            return;
         }
     }
-    std::cout << "[internlmsgreceiver] - stopped" << std::endl;
 }
 
 template<class D>
@@ -115,7 +118,11 @@ INTNLMSG::RECEIVER internlmsgreceiver<D>::get_type() const
 template<class D>
 void internlmsgreceiver<D>::stopthread()
 {
+    std::cout << "in stopthread for " + myname << std::endl;
     stop = true;
+
+    if (myname == "INTERNL_MSG_ROUTER")
+        stop = true;
     D dummy_msg = D(INTNLMSG::RECV_BROADCAST, -1, std::move(std::string("exit")));
     EnqueMsg(dummy_msg);
 }

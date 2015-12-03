@@ -129,7 +129,7 @@ void deviceremconsole<D>::operator ()()
                 std::string command;
                 protocol_dev->getCommand(1, command);
 
-                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                        std::move(std::string(cmd_received) + command));
 
                 if (command.compare(std::string("exit")) == 0)
@@ -138,16 +138,14 @@ void deviceremconsole<D>::operator ()()
                 }
                 else if(command.compare(std::string("devices")) == 0)
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(std::string("num_of_devs_demanded")));
-                    this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::GET_NUM_OF_DEVS,
+                    this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::GET_NUM_OF_DEVS,
                                            std::move(std::string("num_of_devs_demanded")));
                 }
                 else if(command.compare(std::string("shutdown")) == 0)
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
-                                           std::move(std::string("shutdown")));
-                    this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::SHUTDOWN_ALL,
+                    this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::SHUTDOWN_ALL,
                                            std::move(std::string("shutdown")));
                 }
                 else
@@ -164,9 +162,9 @@ void deviceremconsole<D>::operator ()()
             {
                 stop = true;
                 protocol_dev->shutdown();
-                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                        std::move(devName + std::string(" - shutdown")));
-                this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_SHUTDOWN,
+                this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_SHUTDOWN,
                                        std::move(devName + std::string(" - shutdown")));
                 internlmsg_router->deregister_receiver(imr_ptr);
                 this->imr_ptr->stopthread();

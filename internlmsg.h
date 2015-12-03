@@ -5,6 +5,9 @@
 
 namespace INTNLMSG
 {
+
+    extern std::string receivers_names[];
+
     enum RECEIVER
     {
         RECV_DISPLAY,

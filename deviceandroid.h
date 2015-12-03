@@ -119,25 +119,25 @@ void deviceandroid<D>::operator()()
             {
                 if (protocol_dev->getDeviceName(devName) == -1)
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - can't get device name")));
                     state = SHUTDOWN;
                 }
                 else
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - got device name")));
                     state = WORK;
                 }
                 if (protocol_dev->getDeviceConfig(devCfg) == -1)
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - can't get device name")));
                     state = SHUTDOWN;
                 }
                 else
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - got device config - ") + devCfg));
                     state = WORK;
                 }
@@ -150,13 +150,13 @@ void deviceandroid<D>::operator()()
 
                 if (protocol_dev->getData(0, data) == -1)
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - can't get data")));
                     state = SHUTDOWN;
                 }
                 else
                 {
-                    this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(devName + std::string("\n") +
                                                      std::string(data.at(0))));
                     state = SLEEP;
@@ -173,9 +173,9 @@ void deviceandroid<D>::operator()()
             {
                 protocol_dev->shutdown();
                 stop = true;
-                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                        std::move(devName + std::string("- shutdown")));
-                this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_SHUTDOWN,
+                this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_SHUTDOWN,
                                        std::move(devName + std::string("- shutdown")));
                 internlmsg_router->deregister_receiver(imr_ptr);
                 this->imr_ptr->stopthread();

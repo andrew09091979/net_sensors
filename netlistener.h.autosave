@@ -176,7 +176,6 @@ typename netlistener<D>::INTMSGRES netlistener<D>::HandleInternalMsg(D data)
         {
            shutdown_ordered = true;
            shutdown(sockToListen, SHUT_RDWR);//terminate accept
-//           close(sockToListen);
         }
         break;
     }

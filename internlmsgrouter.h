@@ -9,7 +9,7 @@ class internlmsgrouter : public internlmsgreceiver<D>
 {
     std::vector<internlmsgreceiver<D> *> receivers;
     mutable std::mutex mtx;
-
+    bool bStop;
 public:
     internlmsgrouter();
     void register_receiver(internlmsgreceiver<D> * recv_);
@@ -20,9 +20,9 @@ public:
 };
 
 template<class D>
-internlmsgrouter<D>::internlmsgrouter() : internlmsgreceiver<D>(INTNLMSG::RECV_INTERNL_MSG_ROUTER)
+internlmsgrouter<D>::internlmsgrouter() : internlmsgreceiver<D>(INTNLMSG::RECV_INTERNL_MSG_ROUTER),
+                                          bStop(false)
 {
-
 }
 
 template<class D>
@@ -50,7 +50,7 @@ typename internlmsgreceiver<D>::HANDLE_RES internlmsgrouter<D>::HandleMsg(D data
         {
             case INTNLMSG::SHUTDOWN_ALL:
             {
-                this->stopthread();
+                bStop = true;
             }
             break;
         }
@@ -71,7 +71,7 @@ void internlmsgrouter<D>::register_receiver(internlmsgreceiver<D> *recv_)
         if ((*it)->get_type() == INTNLMSG::RECV_DISPLAY)
         {
             D msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
-                  std::string("[internlmsgrouter] - device of type #") + std::to_string(int(recv_->get_type()))
+                  std::string("[internlmsgrouter] - device of type ") + recv_->getname()
                                 + std::string(" registered"));
             *(*it) << msg;
         }
@@ -106,7 +106,17 @@ void internlmsgrouter<D>::deregister_receiver(internlmsgreceiver<D> *recv_)
     bool found_and_erased = false;
 
     std::lock_guard<std::mutex> lk(mtx);
+    typename std::vector<internlmsgreceiver<D> *>::iterator it1;
 
+    for (it1 = receivers.begin(); it1 != receivers.end(); ++it1)
+    {
+        if ((*it1)->get_type() == INTNLMSG::RECV_DISPLAY)
+        {
+            D msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                  std::string("[internlmsgrouter] - removing device of type ") + recv_->getname());
+            *(*it1) << msg;
+        }
+    }
 //    internlmsgreceiver<D> *elem;
     typename std::vector<internlmsgreceiver<D> *>::iterator it;
 
@@ -125,10 +135,18 @@ void internlmsgrouter<D>::deregister_receiver(internlmsgreceiver<D> *recv_)
             if ((*it)->get_type() == INTNLMSG::RECV_DISPLAY)
             {
                 D msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
-                      std::string("[internlmsgrouter] - device of type #") + std::to_string(int(recv_->get_type()))
+                      std::string("[internlmsgrouter] - device of type ") + recv_->getname()
                                     + std::string(" removed"));
                 *(*it) << msg;
             }
+        }
+    }
+
+    if (bStop)
+    {
+        if ((receivers.size() == 0))
+        {
+            this->stopthread();
         }
     }
 }

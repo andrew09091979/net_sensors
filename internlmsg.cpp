@@ -1,6 +1,19 @@
 #include "internlmsg.h"
 #include <cstring>
 
+namespace INTNLMSG
+{
+    std::string receivers_names[] = { std::string("DISPLAY"),
+                                      std::string("DATABASE"),
+                                      std::string("FILE"),
+                                      std::string("CLIENTSERVICE"),
+                                      std::string("NETLISTENER"),
+                                      std::string("NETCONNHANDLER"),
+                                      std::string("DEVICE"),
+                                      std::string("DEVICE_MANAGER"),
+                                      std::string("INTERNL_MSG_ROUTER"),
+                                      std::string("BROADCAST")};
+}
 internlmsg::internlmsg()
 {
 

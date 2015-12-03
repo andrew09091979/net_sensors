@@ -69,9 +69,9 @@ typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D 
                         std::shared_ptr<protocol<char>> prot(new protocolandroiddev(conn));
                         deviceandroid<D> dev(internlmsg_router, prot);
 
-                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                        this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                                std::move(std::string(start_clientserv)));
-                        this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_ADDED,
+                        this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_ADDED,
                                                std::move(std::string(start_clientserv)));
                         //std::thread thr = std::thread(std::reference_wrapper<deviceandroid<D>>(dev));
                         std::thread thr = std::thread(dev);
@@ -85,9 +85,9 @@ typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D 
                         std::shared_ptr<protocol<char>> prot(new protocolremconsole(conn));
                         deviceremconsole<D> dev(internlmsg_router, prot);
 
-                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                        this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                                std::move(std::string(start_clientserv)));
-                        this->send_internl_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_ADDED,
+                        this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_ADDED,
                                                std::move(std::string(start_clientserv)));
                         //std::thread thr = std::thread(std::reference_wrapper<deviceremconsole<D>>(dev));
                         std::thread thr = std::thread(dev);
@@ -96,20 +96,20 @@ typename internlmsgreceiver<D>::HANDLE_RES netconnectionhandler<D>::HandleMsg(D 
                     }
                     break;
                     default:
-                        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                        this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                                std::move(std::string(invalid_dev_type)));
                     break;
                 }
             }
             else
             {
-                this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                        std::move(std::string(cannot_get_dev_type)));
             }
         }
         else
         {
-            this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::move(std::string(sock_is_invalid)));
+            this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::move(std::string(sock_is_invalid)));
         }
     }
     else if (data.getreceiver() == INTNLMSG::RECV_BROADCAST)

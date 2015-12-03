@@ -48,16 +48,17 @@ typename internlmsgreceiver<D>::HANDLE_RES devicemanager<D>::HandleMsg(D data)
     }
     else if(whatHappened == INTNLMSG::GET_NUM_OF_DEVS)//remote console asked number of devices
     {
-        this->send_internl_msg(INTNLMSG::RECV_DEVICE, INTNLMSG::GET_NUM_OF_DEVS,
+        this->send_internal_msg(INTNLMSG::RECV_DEVICE, INTNLMSG::GET_NUM_OF_DEVS,
                                std::string(numOfDevs) + std::to_string(numOfDevices));
     }
     else if(whatHappened == INTNLMSG::SHUTDOWN_ALL)//remote console ordered to shutdown application
     {
         this->internlmsg_router->deregister_receiver(this);
-        this->send_internl_msg(INTNLMSG::RECV_BROADCAST, INTNLMSG::SHUTDOWN_ALL, std::string(shutdown));
-//        this->send_internl_msg(INTNLMSG::RECV_NETLISTENER, INTNLMSG::SHUTDOWN_ALL, std::string(shutdown));
-//        this->send_internl_msg(INTNLMSG::RECV_DEVICE, INTNLMSG::SHUTDOWN_ALL, std::string(shutdown));
-//        this->send_internl_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::string(shutdown));
+        this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::string(shutdown));
+        this->send_internal_msg(INTNLMSG::RECV_BROADCAST, INTNLMSG::SHUTDOWN_ALL, std::string(shutdown));
+//        this->send_internal_msg(INTNLMSG::RECV_NETLISTENER, INTNLMSG::SHUTDOWN_ALL, std::string(shutdown));
+//        this->send_internal_msg(INTNLMSG::RECV_DEVICE, INTNLMSG::SHUTDOWN_ALL, std::string(shutdown));
+//        this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::string(shutdown));
         this->stopthread();
     }
 
