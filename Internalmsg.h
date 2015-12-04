@@ -1,5 +1,5 @@
-#ifndef INTERNLMSG_H
-#define INTERNLMSG_H
+#ifndef Internalmsg_H
+#define Internalmsg_H
 
 #include <string>
 
@@ -14,23 +14,23 @@ namespace INTNLMSG
         RECV_DATABASE,
         RECV_FILE,
         RECV_CLIENTSERVICE,
-        RECV_NETLISTENER,
+        RECV_Netlistener,
         RECV_NETCONNHANDLER,
-        RECV_DEVICE,
-        RECV_DEVICE_MANAGER,
+        RECV_Device,
+        RECV_Device_MANAGER,
         RECV_INTERNL_MSG_ROUTER,
         RECV_BROADCAST
     };
     enum MSG_TYPE
     {
         SHOW_MESSAGE,
-        DEVICE_ADDED,
-        DEVICE_SHUTDOWN,
+        Device_ADDED,
+        Device_SHUTDOWN,
         GET_NUM_OF_DEVS,
         SHUTDOWN_ALL
     };
 }
-class internlmsg
+class Internalmsg
 {
     INTNLMSG::RECEIVER recv;
     unsigned int size;
@@ -38,13 +38,13 @@ class internlmsg
     char *msg;
 
 public:
-    internlmsg();
-    internlmsg(INTNLMSG::RECEIVER recv_, unsigned int size_,
+    Internalmsg();
+    Internalmsg(INTNLMSG::RECEIVER recv_, unsigned int size_,
                unsigned int val_, char *msg_);
-    internlmsg(INTNLMSG::RECEIVER recv_, unsigned int val_, std::string msg_);
-    internlmsg(internlmsg&& oth);
-    internlmsg(const internlmsg& oth);
-    ~internlmsg();
+    Internalmsg(INTNLMSG::RECEIVER recv_, unsigned int val_, std::string msg_);
+    Internalmsg(Internalmsg&& oth);
+    Internalmsg(const Internalmsg& oth);
+    ~Internalmsg();
     INTNLMSG::RECEIVER getreceiver() const;
     unsigned int getsize() const;
     char *getmsg() const;
@@ -56,4 +56,4 @@ public:
     void setmsg(std::string msg_);
 };
 
-#endif // INTERNLMSG_H
+#endif // Internalmsg_H

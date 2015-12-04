@@ -1,6 +1,6 @@
-#include "protocolandroiddev.h"
+#include "Protocolandroiddev.h"
 
-protocolandroiddev::protocolandroiddev(std::shared_ptr<connectionhandler> conn) : protocol(conn),
+Protocolandroiddev::Protocolandroiddev(std::shared_ptr<Connectionhandler> conn) : Protocol(conn),
                                                                                   START_MARKER('#'),
                                                                                   START_MARKER_LEN(1),
                                                                                   MSG_SIZE_LEN(2),
@@ -9,7 +9,7 @@ protocolandroiddev::protocolandroiddev(std::shared_ptr<connectionhandler> conn) 
 
 }
 
-int protocolandroiddev::exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response)
+int Protocolandroiddev::exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response)
 {
     bool cycleComplete = false;
     STATE state = SEND_REQUEST;
@@ -94,7 +94,7 @@ int protocolandroiddev::exchangeCycle(const arraywrapper<char> &msg, arraywrappe
     return res;
 }
 
-int protocolandroiddev::getDeviceName(std::string &devName)
+int Protocolandroiddev::getDeviceName(std::string &devName)
 {
     int res = -1;
     arraywrapper<char> msg(4);
@@ -102,7 +102,7 @@ int protocolandroiddev::getDeviceName(std::string &devName)
     *msg.at(0) = START_MARKER;
     *msg.at(1) = 0x0;
     *msg.at(2) = 0x1;
-    *msg.at(3) = GET_DEVICE_NAME;
+    *msg.at(3) = GET_Device_NAME;
 
     res = exchangeCycle(msg, response);
 
@@ -113,7 +113,7 @@ int protocolandroiddev::getDeviceName(std::string &devName)
     return res;
 }
 
-int protocolandroiddev::getDeviceConfig(std::string &devConfig)
+int Protocolandroiddev::getDeviceConfig(std::string &devConfig)
 {
     int res = -1;
     arraywrapper<char> msg(4);
@@ -122,7 +122,7 @@ int protocolandroiddev::getDeviceConfig(std::string &devConfig)
     *msg.at(0) = START_MARKER;
     *msg.at(1) = 0x0;
     *msg.at(2) = 0x1;
-    *msg.at(3) = GET_DEVICE_CONFIG;
+    *msg.at(3) = GET_Device_CONFIG;
 
     res = exchangeCycle(msg, response);
 
@@ -133,7 +133,7 @@ int protocolandroiddev::getDeviceConfig(std::string &devConfig)
     return res;
 }
 
-int protocolandroiddev::getData(const int param, arraywrapper<char> &data)
+int Protocolandroiddev::getData(const int param, arraywrapper<char> &data)
 {
     int res = -1;
     arraywrapper<char> msg(4);
@@ -148,20 +148,20 @@ int protocolandroiddev::getData(const int param, arraywrapper<char> &data)
     return res;
 }
 
-int protocolandroiddev::getCommand(const int param, std::string &cmd)
+int Protocolandroiddev::getCommand(const int param, std::string &cmd)
 {
     int res = -1;
 
     return res;
 }
 
-int protocolandroiddev::sendData(arraywrapper<char> &data)
+int Protocolandroiddev::sendData(arraywrapper<char> &data)
 {
     int res = -1;
 
     return res;
 }
-int protocolandroiddev::shutdown()
+int Protocolandroiddev::shutdown()
 {
     return conn_handl->shutdownconn();
 }

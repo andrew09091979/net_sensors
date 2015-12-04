@@ -1,4 +1,4 @@
-#include "internlmsg.h"
+#include "Internalmsg.h"
 #include <cstring>
 
 namespace INTNLMSG
@@ -7,26 +7,26 @@ namespace INTNLMSG
                                       std::string("DATABASE"),
                                       std::string("FILE"),
                                       std::string("CLIENTSERVICE"),
-                                      std::string("NETLISTENER"),
+                                      std::string("Netlistener"),
                                       std::string("NETCONNHANDLER"),
-                                      std::string("DEVICE"),
-                                      std::string("DEVICE_MANAGER"),
+                                      std::string("Device"),
+                                      std::string("Device_MANAGER"),
                                       std::string("INTERNL_MSG_ROUTER"),
                                       std::string("BROADCAST")};
 }
-internlmsg::internlmsg()
+Internalmsg::Internalmsg()
 {
 
 }
 
-internlmsg::internlmsg(INTNLMSG::RECEIVER recv_, unsigned int size_,
+Internalmsg::Internalmsg(INTNLMSG::RECEIVER recv_, unsigned int size_,
                         unsigned int val_, char *msg_) :
                       recv(recv_), size(size_), val(val_), msg(msg_)
 {
 
 }
 
-internlmsg::internlmsg(INTNLMSG::RECEIVER recv_, unsigned int val_, std::string msg_) :
+Internalmsg::Internalmsg(INTNLMSG::RECEIVER recv_, unsigned int val_, std::string msg_) :
                                                                                 recv(recv_), val(val_)
 {
     size = msg_.length() + 1;
@@ -35,13 +35,13 @@ internlmsg::internlmsg(INTNLMSG::RECEIVER recv_, unsigned int val_, std::string 
     memcpy(msg, msg_.c_str(), size);
 }
 
-internlmsg::internlmsg(internlmsg&& oth) : recv(oth.recv), size(oth.size),
+Internalmsg::Internalmsg(Internalmsg&& oth) : recv(oth.recv), size(oth.size),
                                             val(oth.val), msg(oth.msg)
 {
     oth.msg = nullptr;
 }
 
-internlmsg::internlmsg(const internlmsg& oth) : recv(oth.recv), size(oth.size),
+Internalmsg::Internalmsg(const Internalmsg& oth) : recv(oth.recv), size(oth.size),
                                                  val(oth.val)
 {
     msg = new char[size];
@@ -49,53 +49,53 @@ internlmsg::internlmsg(const internlmsg& oth) : recv(oth.recv), size(oth.size),
     memcpy(msg, oth.msg, size);
 }
 
-internlmsg::~internlmsg()
+Internalmsg::~Internalmsg()
 {
     if (msg != nullptr)
         delete [] msg;
 }
 
-INTNLMSG::RECEIVER internlmsg::getreceiver() const
+INTNLMSG::RECEIVER Internalmsg::getreceiver() const
 {
     return recv;
 }
 
-unsigned int internlmsg::getsize() const
+unsigned int Internalmsg::getsize() const
 {
     return size;
 }
 
-char * internlmsg::getmsg() const
+char * Internalmsg::getmsg() const
 {
     return msg;
 }
 
-unsigned int internlmsg::getval() const
+unsigned int Internalmsg::getval() const
 {
     return val;
 }
 
-void internlmsg::setrecv(INTNLMSG::RECEIVER recv_)
+void Internalmsg::setrecv(INTNLMSG::RECEIVER recv_)
 {
     recv = recv_;
 }
 
-void internlmsg::setsize(unsigned int size_)
+void Internalmsg::setsize(unsigned int size_)
 {
     size = size_;
 }
 
-void internlmsg::setval(unsigned int val_)
+void Internalmsg::setval(unsigned int val_)
 {
     val = val_;
 }
 
-void internlmsg::setmsg(char * const msg_)
+void Internalmsg::setmsg(char * const msg_)
 {
     msg = msg_;
 }
 
-void internlmsg::setmsg(std::string msg_)
+void Internalmsg::setmsg(std::string msg_)
 {
     size = msg_.length() + 1;
     msg = new char[size];

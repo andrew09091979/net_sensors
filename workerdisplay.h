@@ -6,32 +6,32 @@
 #include <queue>
 #include <iostream>
 //#include "modulemanager.h"
-#include "internlmsgreceiver.h"
-#include "internlmsg.h"
-#include "internlmsgrouter.h"
+#include "Internalmsgreceiver.h"
+#include "Internalmsg.h"
+#include "Internalmsgrouter.h"
 
 template <class D>
-class WorkerDisplay : public internlmsgreceiver<D>
+class WorkerDisplay : public Internalmsgreceiver<D>
 {
-    internlmsgrouter<D> * const internlmsg_router;
+    Internalmsgrouter<D> * const Internalmsg_router;
 public:
-    WorkerDisplay(internlmsgrouter<D> * const internlmsg_router_);
-    typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data);
+    WorkerDisplay(Internalmsgrouter<D> * const Internalmsg_router_);
+    typename Internalmsgreceiver<D>::HANDLE_RES HandleMsg(D data);
     virtual ~WorkerDisplay();
 };
 
 template<class D>
-WorkerDisplay<D>::WorkerDisplay(internlmsgrouter<D> * const internlmsg_router_) :
-                                                                    internlmsgreceiver<D>(INTNLMSG::RECV_DISPLAY),
-                                                                    internlmsg_router(internlmsg_router_)
+WorkerDisplay<D>::WorkerDisplay(Internalmsgrouter<D> * const Internalmsg_router_) :
+                                                                    Internalmsgreceiver<D>(INTNLMSG::RECV_DISPLAY),
+                                                                    Internalmsg_router(Internalmsg_router_)
 {
-    internlmsg_router->register_receiver(this);
+    Internalmsg_router->register_receiver(this);
 }
 
 template<class D>
-typename internlmsgreceiver<D>::HANDLE_RES WorkerDisplay<D>::HandleMsg(D data)
+typename Internalmsgreceiver<D>::HANDLE_RES WorkerDisplay<D>::HandleMsg(D data)
 {
-    typename internlmsgreceiver<D>::HANDLE_RES res = internlmsgreceiver<D>::HANDLE_OK;
+    typename Internalmsgreceiver<D>::HANDLE_RES res = Internalmsgreceiver<D>::HANDLE_OK;
     int command = data.getval();
 
     switch (command)
@@ -44,7 +44,7 @@ typename internlmsgreceiver<D>::HANDLE_RES WorkerDisplay<D>::HandleMsg(D data)
 
         case INTNLMSG::SHUTDOWN_ALL:
         {
-            internlmsg_router->deregister_receiver(this);
+            Internalmsg_router->deregister_receiver(this);
             this->stopthread();
         }
         break;

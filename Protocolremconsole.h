@@ -3,15 +3,15 @@
 
 #include <string>
 #include <mutex>
-#include "protocol.h"
+#include "Protocol.h"
 
 
-class protocolremconsole : public protocol<char>
+class Protocolremconsole : public Protocol<char>
 {
     enum MESSAGE_TO_SENSOR
     {
-        GET_DEVICE_NAME = 0x30,
-        GET_DEVICE_CONFIG = 0x31,
+        GET_Device_NAME = 0x30,
+        GET_Device_CONFIG = 0x31,
         GET_VALUES_IN_STRING = 0x32,
         GET_VALUES = 0x33,
         GET_FROM_ME_VALUES
@@ -34,7 +34,7 @@ class protocolremconsole : public protocol<char>
     std::mutex sendmtx;
     int exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response);
 public:
-    protocolremconsole(std::shared_ptr<connectionhandler> conn);
+    Protocolremconsole(std::shared_ptr<Connectionhandler> conn);
 
     int getDeviceName(std::string &devName);
     int getDeviceConfig(std::string &devConfig);
@@ -42,7 +42,7 @@ public:
     int getCommand(const int param, std::string &cmd);
     int sendData(arraywrapper<char> &data);
     int shutdown();
-    ~protocolremconsole() {}
+    ~Protocolremconsole() {}
 };
 
 #endif // PROTOCOLREMCONSOLE_H

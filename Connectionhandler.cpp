@@ -1,17 +1,17 @@
 #include <sys/ioctl.h>
 #include <cstring>
-#include "connectionhandler.h"
+#include "Connectionhandler.h"
 
-connectionhandler::connectionhandler(int sock_) : sock(sock_), READ_TIMEOUT_SEC(2), MAX_ATTEMPTS_TO_READ(5)
+Connectionhandler::Connectionhandler(int sock_) : sock(sock_), READ_TIMEOUT_SEC(2), MAX_ATTEMPTS_TO_READ(5)
 {
 }
 
-connectionhandler::~connectionhandler()
+Connectionhandler::~Connectionhandler()
 {
 
 }
 
-bool connectionhandler::read_nbytes(char * const bfr, const ssize_t bytes_to_read)
+bool Connectionhandler::read_nbytes(char * const bfr, const ssize_t bytes_to_read)
 {
     bool res = false;
     int sel_res = 0;
@@ -75,7 +75,7 @@ bool connectionhandler::read_nbytes(char * const bfr, const ssize_t bytes_to_rea
     return res;
 }
 
-bool connectionhandler::read_line(std::string &bfr)
+bool Connectionhandler::read_line(std::string &bfr)
 {
     bool res = false;
     bool end_marker_found = false;
@@ -170,7 +170,7 @@ bool connectionhandler::read_line(std::string &bfr)
     return res;
 }
 
-bool connectionhandler::send_nbytes(const char * const bfr, const ssize_t bytes_to_send)
+bool Connectionhandler::send_nbytes(const char * const bfr, const ssize_t bytes_to_send)
 {
     bool res = false;
     const char *bfr_ptr = bfr;
@@ -198,7 +198,7 @@ bool connectionhandler::send_nbytes(const char * const bfr, const ssize_t bytes_
     return res;
 }
 
-int connectionhandler::shutdownconn()
+int Connectionhandler::shutdownconn()
 {
     return shutdown(sock, SHUT_RDWR);
 }

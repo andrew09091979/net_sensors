@@ -6,11 +6,11 @@
 #include <queue>
 #include <condition_variable>
 #include <iostream>
-#include "internlmsg.h"
-//#include "device.h"
+#include "Internalmsg.h"
+//#include "Device.h"
 
 template <class D>
-class internlmsgreceiver
+class Internalmsgreceiver
 {
 protected:
     const INTNLMSG::RECEIVER iam;
@@ -28,7 +28,7 @@ public:
         HANDLE_FAILED
     };
 
-    internlmsgreceiver(INTNLMSG::RECEIVER iam_) : iam(iam_), mtx_p(new std::mutex),
+    Internalmsgreceiver(INTNLMSG::RECEIVER iam_) : iam(iam_), mtx_p(new std::mutex),
                                                   message_queue_p(new std::queue<D>),
                                                   data_cond_p(new std::condition_variable),
                                                   stop(false)
@@ -36,9 +36,9 @@ public:
         myname = INTNLMSG::receivers_names[iam];
     }
 
-    virtual ~internlmsgreceiver();
+    virtual ~Internalmsgreceiver();
     void EnqueMsg(D data);
-    internlmsgreceiver<D> &operator <<(const D &data);
+    Internalmsgreceiver<D> &operator <<(const D &data);
     void MainLoop();
     virtual void operator ()();
     virtual HANDLE_RES HandleMsg(D data) = 0;
@@ -48,12 +48,12 @@ public:
 };
 
 template <class D>
-internlmsgreceiver<D>::~internlmsgreceiver()
+Internalmsgreceiver<D>::~Internalmsgreceiver()
 {
 }
 
 template<class D>
-internlmsgreceiver<D> &internlmsgreceiver<D>::operator <<(const D &data)
+Internalmsgreceiver<D> &Internalmsgreceiver<D>::operator <<(const D &data)
 {
     std::lock_guard<std::mutex> lk(*mtx_p);
     message_queue_p->push(std::move(data));
@@ -63,7 +63,7 @@ internlmsgreceiver<D> &internlmsgreceiver<D>::operator <<(const D &data)
 }
 
 template<class D>
-void internlmsgreceiver<D>::EnqueMsg(D data)
+void Internalmsgreceiver<D>::EnqueMsg(D data)
 {
     std::lock_guard<std::mutex> lk(*mtx_p);
     message_queue_p->push(std::move(data));
@@ -71,7 +71,7 @@ void internlmsgreceiver<D>::EnqueMsg(D data)
 }
 
 template<class D>
-void internlmsgreceiver<D>::MainLoop()
+void Internalmsgreceiver<D>::MainLoop()
 {
 //    while(!stop)
 //    {
@@ -82,11 +82,11 @@ void internlmsgreceiver<D>::MainLoop()
 //        lk.unlock();
 //        HandleMsg(data);
 //    }
-//    std::cout << "[internlmsgreceiver] " << myname << " stopped" << std::endl;
+//    std::cout << "[Internalmsgreceiver] " << myname << " stopped" << std::endl;
 }
 
 template<class D>
-void internlmsgreceiver<D>::operator ()()
+void Internalmsgreceiver<D>::operator ()()
 {
     while(!stop)
     {
@@ -110,13 +110,13 @@ void internlmsgreceiver<D>::operator ()()
 }
 
 template<class D>
-INTNLMSG::RECEIVER internlmsgreceiver<D>::get_type() const
+INTNLMSG::RECEIVER Internalmsgreceiver<D>::get_type() const
 {
     return iam;
 }
 
 template<class D>
-void internlmsgreceiver<D>::stopthread()
+void Internalmsgreceiver<D>::stopthread()
 {
     std::cout << "in stopthread for " + myname << std::endl;
     stop = true;
@@ -128,7 +128,7 @@ void internlmsgreceiver<D>::stopthread()
 }
 
 template <class D>
-std::string internlmsgreceiver<D>::getname() const
+std::string Internalmsgreceiver<D>::getname() const
 {
     return myname;
 }
@@ -140,20 +140,20 @@ std::string internlmsgreceiver<D>::getname() const
 //};
 
 //template <class D>
-//class internalmsgreceiver_dev : public internlmsgreceiver<D>
+//class internalmsgreceiver_dev : public Internalmsgreceiver<D>
 //{
-//    device<D> *const dev;
+//    Device<D> *const dev;
 
 //public:
-//    internalmsgreceiver_dev(device<D> *const dev_, INTNLMSG::RECEIVER iam_) : internlmsgreceiver<D>(iam_),
+//    internalmsgreceiver_dev(Device<D> *const dev_, INTNLMSG::RECEIVER iam_) : Internalmsgreceiver<D>(iam_),
 //                                                                        dev(dev_)
 
 //    {
 //    }
 
-//    typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data)
+//    typename Internalmsgreceiver<D>::HANDLE_RES HandleMsg(D data)
 //    {
-//        typename internlmsgreceiver<D>::HANDLE_RES res;
+//        typename Internalmsgreceiver<D>::HANDLE_RES res;
 //        res = dev->HandleInternalMsg(std::move(data));
 //        return res;
 //    }

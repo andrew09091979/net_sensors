@@ -1,15 +1,15 @@
 #ifndef PROTOCOLANDROIDDEV_H
 #define PROTOCOLANDROIDDEV_H
 
-#include <protocol.h>
+#include <Protocol.h>
 #include <string>
 
-class protocolandroiddev : public protocol<char>
+class Protocolandroiddev : public Protocol<char>
 {
     enum MESSAGE_TO_SENSOR
     {
-        GET_DEVICE_NAME = 0x30,
-        GET_DEVICE_CONFIG = 0x31,
+        GET_Device_NAME = 0x30,
+        GET_Device_CONFIG = 0x31,
         GET_VALUES_IN_STRING = 0x32,
         GET_VALUES = 0x33,
         GET_FROM_ME_VALUES
@@ -32,7 +32,7 @@ class protocolandroiddev : public protocol<char>
 
     int exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response);
 public:
-    protocolandroiddev(std::shared_ptr<connectionhandler> conn);
+    Protocolandroiddev(std::shared_ptr<Connectionhandler> conn);
 
     int getDeviceName(std::string &devName);
     int getDeviceConfig(std::string &devConfig);
@@ -40,6 +40,6 @@ public:
     int getCommand(const int param, std::string &cmd);
     int sendData(arraywrapper<char> &data);
     int shutdown();
-    ~protocolandroiddev() {}
+    ~Protocolandroiddev() {}
 };
 #endif // PROTOCOLANDROIDDEV_H

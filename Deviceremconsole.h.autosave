@@ -1,35 +1,35 @@
-﻿#ifndef DEVICEREMCONSOLE_H
-#define DEVICEREMCONSOLE_H
+﻿#ifndef DeviceREMCONSOLE_H
+#define DeviceREMCONSOLE_H
 
 #include <thread>
 #include <functional>
-#include "device.h"
-#include "protocol.h"
-#include "internlmsgreceiver.h"
-#include "internlmsgrouter.h"
+#include "Device.h"
+#include "Protocol.h"
+#include "Internalmsgreceiver.h"
+#include "Internalmsgrouter.h"
 
 template <class D>
-class deviceremconsole;
+class Deviceremconsole;
 
 template <class D>
-class internlmsgreceivr : public internlmsgreceiver<D>
+class Internalmsgreceivr : public Internalmsgreceiver<D>
 {
-    device<D> *const dev;
+    Device<D> *const dev;
 
 public:
-    internlmsgreceivr(device<D> * const dev_, INTNLMSG::RECEIVER iam_) : internlmsgreceiver<D>(iam_),
+    Internalmsgreceivr(Device<D> * const dev_, INTNLMSG::RECEIVER iam_) : Internalmsgreceiver<D>(iam_),
                                                                          dev(dev_)
 
     {
 
     }
 
-    ~internlmsgreceivr()
+    ~Internalmsgreceivr()
     {
 
     }
 
-    typename internlmsgreceiver<D>::HANDLE_RES HandleMsg(D data)
+    typename Internalmsgreceiver<D>::HANDLE_RES HandleMsg(D data)
     {
         if (dev != nullptr)
         {
@@ -37,14 +37,14 @@ public:
         }
         else
         {
-            return internlmsgreceiver<D>::HANDLE_FAILED;
+            return Internalmsgreceiver<D>::HANDLE_FAILED;
         }
     }
 };
 
 
 template <class D>
-class deviceremconsole : public device<D>
+class Deviceremconsole : public Device<D>
 {
     enum STATE
     {
@@ -53,7 +53,7 @@ class deviceremconsole : public device<D>
         SHUTDOWN
     };
 
-    typedef typename device<D>::INTMSGRES INTMSGRES;
+    typedef typename Device<D>::INTMSGRES INTMSGRES;
     const char * cmd_received;
     const char * unknown_cmd;
     const char * num_of_devs_demanded;
@@ -61,15 +61,15 @@ class deviceremconsole : public device<D>
     bool stop;
     bool shutdown_ordered;
     STATE state;
-    internlmsgrouter<D> * const internlmsg_router;
-    std::shared_ptr<protocol<char> > protocol_dev;
+    Internalmsgrouter<D> * const Internalmsg_router;
+    std::shared_ptr<Protocol<char> > protocol_dev;
     const std::string devName;
-    internlmsgreceivr<D> *imr_ptr;
+    Internalmsgreceivr<D> *imr_ptr;
 
 public:
-    deviceremconsole(internlmsgrouter<D> * const internlmsg_router_,
-                    std::shared_ptr<protocol<char> > protocol_);
-    ~deviceremconsole()
+    Deviceremconsole(Internalmsgrouter<D> * const Internalmsg_router_,
+                    std::shared_ptr<Protocol<char> > protocol_);
+    ~Deviceremconsole()
     {
 
     }
@@ -78,31 +78,31 @@ public:
 };
 
 template <class D>
-deviceremconsole<D>::deviceremconsole(internlmsgrouter<D> * const internlmsg_router_,
-                                      std::shared_ptr<protocol<char> > protocol_) :
-                                                                   device<D>(internlmsg_router_),
+Deviceremconsole<D>::Deviceremconsole(Internalmsgrouter<D> * const Internalmsg_router_,
+                                      std::shared_ptr<Protocol<char> > protocol_) :
+                                                                   Device<D>(Internalmsg_router_),
                                                                    cmd_received("[remote console] - command received: "),
                                                                    unknown_cmd("[remote console] - unknown command\n"),
-                                                                   num_of_devs_demanded("[remote console] - number of devices demanded\n"),
+                                                                   num_of_devs_demanded("[remote console] - number of Devices demanded\n"),
                                                                    stop(false),
                                                                    shutdown_ordered(false),
                                                                    state(STATE::INITIAL),
-                                                                   internlmsg_router(internlmsg_router_),
+                                                                   Internalmsg_router(Internalmsg_router_),
                                                                    protocol_dev(protocol_),
                                                                    devName("remote console")
 {
-    commands .push_back(std::string("devices"));
+    commands .push_back(std::string("Devices"));
     commands .push_back(std::string("shutdown"));
 }
 
 template <class D>
-void deviceremconsole<D>::operator ()()
+void Deviceremconsole<D>::operator ()()
 {
-    internlmsgreceivr<D> internalmsgreceiver(this, INTNLMSG::RECV_DEVICE);
+    Internalmsgreceivr<D> internalmsgreceiver(this, INTNLMSG::RECV_Device);
     imr_ptr = &internalmsgreceiver;
-    std::reference_wrapper<internlmsgreceivr<D> > rv = std::reference_wrapper<internlmsgreceivr<D> >(internalmsgreceiver);
+    std::reference_wrapper<Internalmsgreceivr<D> > rv = std::reference_wrapper<Internalmsgreceivr<D> >(internalmsgreceiver);
     std::thread thrd = std::thread(rv);
-    internlmsg_router->register_receiver(imr_ptr);
+    Internalmsg_router->register_receiver(imr_ptr);
 
     while (!stop)
     {
@@ -115,7 +115,7 @@ void deviceremconsole<D>::operator ()()
         {
             case INITIAL:
             {
-                char cmds_str[] = "commands available:\ndevices\nshutdown\nexit\n";
+                char cmds_str[] = "commands available:\nDevices\nshutdown\nexit\n";
                 arraywrapper<char> cmds = arraywrapper<char>(strlen(cmds_str) + 1);
                 cmds.zero_mem();
                 strcpy(cmds.at(0), cmds_str);
@@ -140,12 +140,12 @@ void deviceremconsole<D>::operator ()()
                 {
                     this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(std::string("num_of_devs_demanded")));
-                    this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::GET_NUM_OF_DEVS,
+                    this->send_internal_msg(INTNLMSG::RECV_Device_MANAGER, INTNLMSG::GET_NUM_OF_DEVS,
                                            std::move(std::string("num_of_devs_demanded")));
                 }
                 else if(command.compare(std::string("shutdown")) == 0)
                 {
-                    this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::SHUTDOWN_ALL,
+                    this->send_internal_msg(INTNLMSG::RECV_Device_MANAGER, INTNLMSG::SHUTDOWN_ALL,
                                            std::move(std::string("shutdown")));
                 }
                 else
@@ -164,9 +164,9 @@ void deviceremconsole<D>::operator ()()
                 protocol_dev->shutdown();
                 this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                        std::move(devName + std::string(" - shutdown")));
-                this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_SHUTDOWN,
+                this->send_internal_msg(INTNLMSG::RECV_Device_MANAGER, INTNLMSG::Device_SHUTDOWN,
                                        std::move(devName + std::string(" - shutdown")));
-                internlmsg_router->deregister_receiver(imr_ptr);
+                Internalmsg_router->deregister_receiver(imr_ptr);
                 this->imr_ptr->stopthread();
 
                 if (thrd.joinable())
@@ -181,9 +181,9 @@ void deviceremconsole<D>::operator ()()
 }
 
 template <class D>
-typename deviceremconsole<D>::INTMSGRES deviceremconsole<D>::HandleInternalMsg(D data)
+typename Deviceremconsole<D>::INTMSGRES Deviceremconsole<D>::HandleInternalMsg(D data)
 {
-    typename deviceremconsole<D>::INTMSGRES res = internlmsgreceiver<D>::HANDLE_FAILED;
+    typename Deviceremconsole<D>::INTMSGRES res = Internalmsgreceiver<D>::HANDLE_FAILED;
     int command = data.getval();
 
     switch (command)
@@ -205,4 +205,4 @@ typename deviceremconsole<D>::INTMSGRES deviceremconsole<D>::HandleInternalMsg(D
 
     return res;
 }
-#endif // DEVICEREMCONSOLE_H
+#endif // DeviceREMCONSOLE_H
