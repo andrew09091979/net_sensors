@@ -17,7 +17,7 @@ class Internalmsgreceivr : public InternalMsgReceiver<D>
     Device<D> *const dev;
 
 public:
-    Internalmsgreceivr(Device<D> * const dev_, INTNLMSG::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
+    Internalmsgreceivr(Device<D> * const dev_, INTERNALMESSAGE::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
                                                                          dev(dev_)
 
     {
@@ -98,7 +98,7 @@ DeviceRemConsole<D>::DeviceRemConsole(InternalMsgRouter<D> * const Internalmsg_r
 template <class D>
 void DeviceRemConsole<D>::operator ()()
 {
-    Internalmsgreceivr<D> InternalMsgReceiver(this, INTNLMSG::RECV_DEVICE);
+    Internalmsgreceivr<D> InternalMsgReceiver(this, INTERNALMESSAGE::RECV_DEVICE);
     imr_ptr = &InternalMsgReceiver;
     std::reference_wrapper<Internalmsgreceivr<D> > rv = std::reference_wrapper<Internalmsgreceivr<D> >(InternalMsgReceiver);
     std::thread thrd = std::thread(rv);
@@ -115,7 +115,7 @@ void DeviceRemConsole<D>::operator ()()
         {
             case INITIAL:
             {
-                char cmds_str[] = "commands available:\nDevices\nshutdown\nexit\n";
+                char cmds_str[] = "commands available:\ndevices\nshutdown\nexit\n";
                 arraywrapper<char> cmds = arraywrapper<char>(strlen(cmds_str) + 1);
                 cmds.zero_mem();
                 strcpy(cmds.at(0), cmds_str);
@@ -129,7 +129,7 @@ void DeviceRemConsole<D>::operator ()()
                 std::string command;
                 protocol_dev->getCommand(1, command);
 
-                this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                        std::move(std::string(cmd_received) + command));
 
                 if (command.compare(std::string("exit")) == 0)
@@ -138,14 +138,14 @@ void DeviceRemConsole<D>::operator ()()
                 }
                 else if(command.compare(std::string("devices")) == 0)
                 {
-                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                            std::move(std::string("num_of_devs_demanded")));
-                    this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::GET_NUM_OF_DEVS,
+                    this->send_internal_msg(INTERNALMESSAGE::RECV_DEVICE_MANAGER, INTERNALMESSAGE::GET_NUM_OF_DEVS,
                                            std::move(std::string("num_of_devs_demanded")));
                 }
                 else if(command.compare(std::string("shutdown")) == 0)
                 {
-                    this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::SHUTDOWN_ALL,
+                    this->send_internal_msg(INTERNALMESSAGE::RECV_DEVICE_MANAGER, INTERNALMESSAGE::SHUTDOWN_ALL,
                                            std::move(std::string("shutdown")));
                 }
                 else
@@ -162,9 +162,9 @@ void DeviceRemConsole<D>::operator ()()
             {
                 stop = true;
                 protocol_dev->shutdown();
-                this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                        std::move(devName + std::string(" - shutdown")));
-                this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_SHUTDOWN,
+                this->send_internal_msg(INTERNALMESSAGE::RECV_DEVICE_MANAGER, INTERNALMESSAGE::DEVICE_SHUTDOWN,
                                        std::move(devName + std::string(" - shutdown")));
                 Internalmsg_router->deregister_receiver(imr_ptr);
                 this->imr_ptr->stopthread();
@@ -188,13 +188,13 @@ typename DeviceRemConsole<D>::INTMSGRES DeviceRemConsole<D>::HandleInternalMsg(D
 
     switch (command)
     {
-        case INTNLMSG::SHUTDOWN_ALL:
+        case INTERNALMESSAGE::SHUTDOWN_ALL:
         {
             shutdown_ordered = true;
         }
         break;
 
-        case INTNLMSG::GET_NUM_OF_DEVS://num_of_devs_demanded
+        case INTERNALMESSAGE::GET_NUM_OF_DEVS://num_of_devs_demanded
         {
             arraywrapper<char> msg(data.getsize());
             memcpy(msg.at(0), data.getmsg(), data.getsize());

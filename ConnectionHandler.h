@@ -5,15 +5,15 @@
 #include <sys/socket.h>
 #include <string>
 
-class Connectionhandler
+class ConnectionHandler
 {
     int sock;
     const int READ_TIMEOUT_SEC;
     const int MAX_ATTEMPTS_TO_READ;
 
 public:
-    Connectionhandler(int sock_);
-    ~Connectionhandler();
+    ConnectionHandler(int sock_);
+    ~ConnectionHandler();
 
     bool read_nbytes(char * const bfr, const ssize_t bytes_to_read);
     bool read_line(std::string &bfr);

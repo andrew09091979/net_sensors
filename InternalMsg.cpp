@@ -1,7 +1,7 @@
 #include "InternalMsg.h"
 #include <cstring>
 
-namespace INTNLMSG
+namespace INTERNALMESSAGE
 {
     std::string receivers_names[] = { std::string("DISPLAY"),
                                       std::string("DATABASE"),
@@ -19,14 +19,14 @@ InternalMsg::InternalMsg()
 
 }
 
-InternalMsg::InternalMsg(INTNLMSG::RECEIVER recv_, unsigned int size_,
+InternalMsg::InternalMsg(INTERNALMESSAGE::RECEIVER recv_, unsigned int size_,
                         unsigned int val_, char *msg_) :
                       recv(recv_), size(size_), val(val_), msg(msg_)
 {
 
 }
 
-InternalMsg::InternalMsg(INTNLMSG::RECEIVER recv_, unsigned int val_, std::string msg_) :
+InternalMsg::InternalMsg(INTERNALMESSAGE::RECEIVER recv_, unsigned int val_, std::string msg_) :
                                                                                 recv(recv_), val(val_)
 {
     size = msg_.length() + 1;
@@ -55,7 +55,7 @@ InternalMsg::~InternalMsg()
         delete [] msg;
 }
 
-INTNLMSG::RECEIVER InternalMsg::getreceiver() const
+INTERNALMESSAGE::RECEIVER InternalMsg::getreceiver() const
 {
     return recv;
 }
@@ -75,7 +75,7 @@ unsigned int InternalMsg::getval() const
     return val;
 }
 
-void InternalMsg::setrecv(INTNLMSG::RECEIVER recv_)
+void InternalMsg::setrecv(INTERNALMESSAGE::RECEIVER recv_)
 {
     recv = recv_;
 }

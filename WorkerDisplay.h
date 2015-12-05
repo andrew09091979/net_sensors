@@ -15,15 +15,15 @@ class WorkerDisplay : public InternalMsgReceiver<D>
 {
     InternalMsgRouter<D> * const Internalmsg_router;
 public:
-    WorkerDisplay(InternalMsgRouter<D> * const Internalmsg_router_);
+    WorkerDisplay(InternalMsgRouter<D> * const internalmsg_router_);
     typename InternalMsgReceiver<D>::HANDLE_RES HandleMsg(D data);
     virtual ~WorkerDisplay();
 };
 
 template<class D>
-WorkerDisplay<D>::WorkerDisplay(InternalMsgRouter<D> * const Internalmsg_router_) :
-                                                                    InternalMsgReceiver<D>(INTNLMSG::RECV_DISPLAY),
-                                                                    Internalmsg_router(Internalmsg_router_)
+WorkerDisplay<D>::WorkerDisplay(InternalMsgRouter<D> * const internalmsg_router_) :
+                                                                    InternalMsgReceiver<D>(INTERNALMESSAGE::RECV_DISPLAY),
+                                                                    Internalmsg_router(internalmsg_router_)
 {
     Internalmsg_router->register_receiver(this);
 }
@@ -36,13 +36,13 @@ typename InternalMsgReceiver<D>::HANDLE_RES WorkerDisplay<D>::HandleMsg(D data)
 
     switch (command)
     {
-        case INTNLMSG::SHOW_MESSAGE:
+        case INTERNALMESSAGE::SHOW_MESSAGE:
         {
             std::cout << data.getmsg() << std::endl;
         }
         break;
 
-        case INTNLMSG::SHUTDOWN_ALL:
+        case INTERNALMESSAGE::SHUTDOWN_ALL:
         {
             Internalmsg_router->deregister_receiver(this);
             this->stopthread();

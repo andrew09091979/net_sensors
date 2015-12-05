@@ -9,31 +9,31 @@ class InternalMsgSender
 {    
 protected:
     typedef InternalMsgReceiver<D> WORKER;
-    InternalMsgRouter<D> * const Internalmsg_router;
+    InternalMsgRouter<D> * const internalMsgRouter;
 
 public:
-    InternalMsgSender(InternalMsgRouter<D> * const Internalmsg_router_);
+    InternalMsgSender(InternalMsgRouter<D> * const internalMsgRouter_);
 
     void send_internal_msg(D msg_);
-    void send_internal_msg(INTNLMSG::RECEIVER recv_, unsigned int val_, std::string msg_);
+    void send_internal_msg(INTERNALMESSAGE::RECEIVER recv_, unsigned int val_, std::string msg_);
 };
 
 template<class D>
-InternalMsgSender<D>::InternalMsgSender(InternalMsgRouter<D> * const Internalmsg_router_) : Internalmsg_router(Internalmsg_router_)
+InternalMsgSender<D>::InternalMsgSender(InternalMsgRouter<D> * const internalMsgRouter_) : internalMsgRouter(internalMsgRouter_)
 {
 }
 
 template<class D>
 void InternalMsgSender<D>::send_internal_msg(D msg_)
 {
-    (*Internalmsg_router) << msg_;
+    (*internalMsgRouter) << msg_;
 }
 
 template<class D>
-void InternalMsgSender<D>::send_internal_msg(INTNLMSG::RECEIVER recv_, unsigned int val_, std::string msg_)
+void InternalMsgSender<D>::send_internal_msg(INTERNALMESSAGE::RECEIVER recv_, unsigned int val_, std::string msg_)
 {
     D msg(recv_, val_, std::move(msg_));
-    (*Internalmsg_router) << msg;
+    (*internalMsgRouter) << msg;
 }
 
 #endif // InternalmsgSENDER_H

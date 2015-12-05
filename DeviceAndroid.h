@@ -10,7 +10,7 @@
 #include "InternalMsgSender.h"
 #include "InternalMsgRouter.h"
 #include "ProtocolAndroidDev.h"
-#include "Connectionhandler.h"
+#include "ConnectionHandler.h"
 
 #define MESSAGE_CORRUPTED "Message corrupted"
 #define SENDING_MSG "Sending message"
@@ -47,7 +47,7 @@ class DeviceAndroid : public Device<D>
         Device<D> *const dev;
 
     public:
-        Internalmsgreceivr(Device<D> *const dev_, INTNLMSG::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
+        Internalmsgreceivr(Device<D> *const dev_, INTERNALMESSAGE::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
                                                                             dev(dev_)
 
         {
@@ -74,7 +74,7 @@ class DeviceAndroid : public Device<D>
     std::string devName;
     std::string devCfg;
 public:
-    DeviceAndroid(InternalMsgRouter<D> * const Internalmsg_router_,
+    DeviceAndroid(InternalMsgRouter<D> * const internalmsg_router_,
            std::shared_ptr<Protocol<char> > protocol_);
     ~DeviceAndroid(){}
     void operator()();
@@ -82,10 +82,10 @@ public:
 };
 
 template <class D>
-DeviceAndroid<D>::DeviceAndroid(InternalMsgRouter<D> * const Internalmsg_router_,
+DeviceAndroid<D>::DeviceAndroid(InternalMsgRouter<D> * const internalmsg_router_,
                                 std::shared_ptr<Protocol<char> > protocol_) :
-                                                              Device<D>(Internalmsg_router_),
-                                                              Internalmsg_router(Internalmsg_router_),
+                                                              Device<D>(internalmsg_router_),
+                                                              Internalmsg_router(internalmsg_router_),
                                                               protocol_dev(protocol_),
                                                               imr_ptr(nullptr),
                                                               stop(false),
@@ -100,9 +100,9 @@ template<class D>
 void DeviceAndroid<D>::operator()()
 {
 //    std::cout << "starting Dev thread" << std::endl;
-    Internalmsgreceivr InternalMsgReceiver(this, INTNLMSG::RECV_DEVICE);
-    imr_ptr = &InternalMsgReceiver;
-    std::reference_wrapper<Internalmsgreceivr> rv = std::reference_wrapper<Internalmsgreceivr>(InternalMsgReceiver);
+    Internalmsgreceivr internalMsgReceiver(this, INTERNALMESSAGE::RECV_DEVICE);
+    imr_ptr = &internalMsgReceiver;
+    std::reference_wrapper<Internalmsgreceivr> rv = std::reference_wrapper<Internalmsgreceivr>(internalMsgReceiver);
     std::thread thrd = std::thread(rv);
     Internalmsg_router->register_receiver(imr_ptr);
 
@@ -119,25 +119,25 @@ void DeviceAndroid<D>::operator()()
             {
                 if (protocol_dev->getDeviceName(devName) == -1)
                 {
-                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - can't get Device name")));
                     state = SHUTDOWN;
                 }
                 else
                 {
-                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - got Device name")));
                     state = WORK;
                 }
                 if (protocol_dev->getDeviceConfig(devCfg) == -1)
                 {
-                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - can't get Device name")));
                     state = SHUTDOWN;
                 }
                 else
                 {
-                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - got Device config - ") + devCfg));
                     state = WORK;
                 }
@@ -150,15 +150,18 @@ void DeviceAndroid<D>::operator()()
 
                 if (protocol_dev->getData(0, data) == -1)
                 {
-                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                            std::move(devName + std::string(" - can't get data")));
                     state = SHUTDOWN;
                 }
                 else
                 {
-                    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                    this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                            std::move(devName + std::string("\n") +
                                                      std::string(data.at(0))));
+                    this->send_internal_msg(INTERNALMESSAGE::RECV_FILE, INTERNALMESSAGE::STORE_MESSAGE,
+                                            std::move(devName + std::string("\n") +
+                                                      std::string(data.at(0))));
                     state = SLEEP;
                 }
             }
@@ -173,9 +176,9 @@ void DeviceAndroid<D>::operator()()
             {
                 protocol_dev->shutdown();
                 stop = true;
-                this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                        std::move(devName + std::string("- shutdown")));
-                this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_SHUTDOWN,
+                this->send_internal_msg(INTERNALMESSAGE::RECV_DEVICE_MANAGER, INTERNALMESSAGE::DEVICE_SHUTDOWN,
                                        std::move(devName + std::string("- shutdown")));
                 Internalmsg_router->deregister_receiver(imr_ptr);
                 this->imr_ptr->stopthread();
@@ -196,13 +199,13 @@ typename DeviceAndroid<D>::INTMSGRES DeviceAndroid<D>::HandleInternalMsg(D data)
 
     switch (command)
     {
-        case INTNLMSG::SHUTDOWN_ALL:
+        case INTERNALMESSAGE::SHUTDOWN_ALL:
         {
             shutdown_ordered = true;
         }
         break;
 
-        case INTNLMSG::GET_NUM_OF_DEVS://num_of_devs_demanded
+        case INTERNALMESSAGE::GET_NUM_OF_DEVS://num_of_devs_demanded
         {
         }
         break;

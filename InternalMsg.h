@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace INTNLMSG
+namespace INTERNALMESSAGE
 {
 
     extern std::string receivers_names[];
@@ -24,6 +24,7 @@ namespace INTNLMSG
     enum MSG_TYPE
     {
         SHOW_MESSAGE,
+        STORE_MESSAGE,
         DEVICE_ADDED,
         DEVICE_SHUTDOWN,
         GET_NUM_OF_DEVS,
@@ -32,24 +33,24 @@ namespace INTNLMSG
 }
 class InternalMsg
 {
-    INTNLMSG::RECEIVER recv;
+    INTERNALMESSAGE::RECEIVER recv;
     unsigned int size;
     unsigned int val;
     char *msg;
 
 public:
     InternalMsg();
-    InternalMsg(INTNLMSG::RECEIVER recv_, unsigned int size_,
+    InternalMsg(INTERNALMESSAGE::RECEIVER recv_, unsigned int size_,
                unsigned int val_, char *msg_);
-    InternalMsg(INTNLMSG::RECEIVER recv_, unsigned int val_, std::string msg_);
+    InternalMsg(INTERNALMESSAGE::RECEIVER recv_, unsigned int val_, std::string msg_);
     InternalMsg(InternalMsg&& oth);
     InternalMsg(const InternalMsg& oth);
     ~InternalMsg();
-    INTNLMSG::RECEIVER getreceiver() const;
+    INTERNALMESSAGE::RECEIVER getreceiver() const;
     unsigned int getsize() const;
     char *getmsg() const;
     unsigned int getval() const;
-    void setrecv(INTNLMSG::RECEIVER recv_);
+    void setrecv(INTERNALMESSAGE::RECEIVER recv_);
     void setsize(unsigned int size_);
     void setval(unsigned int val_);
     void setmsg(char *const msg_);

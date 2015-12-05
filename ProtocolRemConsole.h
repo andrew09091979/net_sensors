@@ -34,7 +34,7 @@ class ProtocolRemConsole : public Protocol<char>
     std::mutex sendmtx;
     int exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response);
 public:
-    ProtocolRemConsole(std::shared_ptr<Connectionhandler> conn);
+    ProtocolRemConsole(std::shared_ptr<ConnectionHandler> conn);
 
     int getDeviceName(std::string &devName);
     int getDeviceConfig(std::string &devConfig);

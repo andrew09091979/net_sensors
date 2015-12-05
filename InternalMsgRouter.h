@@ -14,13 +14,13 @@ public:
     InternalMsgRouter();
     void register_receiver(InternalMsgReceiver<D> * recv_);
     void deregister_receiver(InternalMsgReceiver<D> * recv_);
-    void get_receivers(const std::vector<INTNLMSG::RECEIVER> &iam_,
+    void get_receivers(const std::vector<INTERNALMESSAGE::RECEIVER> &iam_,
                       std::vector<InternalMsgReceiver<D> *>& tofill) const;
     typename InternalMsgReceiver<D>::HANDLE_RES HandleMsg(D data);
 };
 
 template<class D>
-InternalMsgRouter<D>::InternalMsgRouter() : InternalMsgReceiver<D>(INTNLMSG::RECV_INTERNL_MSG_ROUTER),
+InternalMsgRouter<D>::InternalMsgRouter() : InternalMsgReceiver<D>(INTERNALMESSAGE::RECV_INTERNL_MSG_ROUTER),
                                           bStop(false)
 {
 }
@@ -36,19 +36,19 @@ typename InternalMsgReceiver<D>::HANDLE_RES InternalMsgRouter<D>::HandleMsg(D da
 
     for (it = receivers.begin(); it != receivers.end(); ++it)
     {
-        if ((*it)->get_type() == data.getreceiver() || (data.getreceiver() == INTNLMSG::RECV_BROADCAST))
+        if ((*it)->get_type() == data.getreceiver() || (data.getreceiver() == INTERNALMESSAGE::RECV_BROADCAST))
         {
             *(*it) << data;
             res = InternalMsgReceiver<D>::HANDLE_OK;
         }
     }
-    if (data.getreceiver() == INTNLMSG::RECV_BROADCAST)
+    if (data.getreceiver() == INTERNALMESSAGE::RECV_BROADCAST)
     {
         int command = data.getval();
 
         switch (command)
         {
-            case INTNLMSG::SHUTDOWN_ALL:
+            case INTERNALMESSAGE::SHUTDOWN_ALL:
             {
                 bStop = true;
             }
@@ -68,9 +68,9 @@ void InternalMsgRouter<D>::register_receiver(InternalMsgReceiver<D> *recv_)
 
     for (it = receivers.begin(); it != receivers.end(); ++it)
     {
-        if ((*it)->get_type() == INTNLMSG::RECV_DISPLAY)
+        if ((*it)->get_type() == INTERNALMESSAGE::RECV_DISPLAY)
         {
-            D msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+            D msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                   std::string("[InternalMsgRouter] - Device of type ") + recv_->getname()
                                 + std::string(" registered"));
             *(*it) << msg;
@@ -79,11 +79,11 @@ void InternalMsgRouter<D>::register_receiver(InternalMsgReceiver<D> *recv_)
 }
 
 template<class D>
-void InternalMsgRouter<D>::get_receivers(const std::vector<INTNLMSG::RECEIVER> &iam_,
+void InternalMsgRouter<D>::get_receivers(const std::vector<INTERNALMESSAGE::RECEIVER> &iam_,
                                     std::vector<InternalMsgReceiver<D> *> &tofill) const
 {
     typename std::vector<InternalMsgReceiver<D> *>::const_iterator it;
-    typename std::vector<INTNLMSG::RECEIVER>::const_iterator it1;
+    typename std::vector<INTERNALMESSAGE::RECEIVER>::const_iterator it1;
 
     std::lock_guard<std::mutex> lk(mtx);
 
@@ -110,9 +110,9 @@ void InternalMsgRouter<D>::deregister_receiver(InternalMsgReceiver<D> *recv_)
 
     for (it1 = receivers.begin(); it1 != receivers.end(); ++it1)
     {
-        if ((*it1)->get_type() == INTNLMSG::RECV_DISPLAY)
+        if ((*it1)->get_type() == INTERNALMESSAGE::RECV_DISPLAY)
         {
-            D msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+            D msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                   std::string("[InternalMsgRouter] - removing Device of type ") + recv_->getname());
             *(*it1) << msg;
         }
@@ -132,9 +132,9 @@ void InternalMsgRouter<D>::deregister_receiver(InternalMsgReceiver<D> *recv_)
         typename std::vector<InternalMsgReceiver<D> *>::iterator it;
         for (it = receivers.begin(); it != receivers.end(); ++it)
         {
-            if ((*it)->get_type() == INTNLMSG::RECV_DISPLAY)
+            if ((*it)->get_type() == INTERNALMESSAGE::RECV_DISPLAY)
             {
-                D msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                D msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                       std::string("[InternalMsgRouter] - Device of type ") + recv_->getname()
                                     + std::string(" removed"));
                 *(*it) << msg;

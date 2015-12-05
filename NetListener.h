@@ -25,7 +25,7 @@ class NetListener : public InternalMsgSender<D>
         NetListener<D> *const dev;
 
     public:
-        Internalmsgreceivr(NetListener<D> *const dev_, INTNLMSG::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
+        Internalmsgreceivr(NetListener<D> *const dev_, INTERNALMESSAGE::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
                                                                                  dev(dev_)
         {
         }
@@ -38,7 +38,7 @@ class NetListener : public InternalMsgSender<D>
         }
     };
 
-    const INTNLMSG::RECEIVER iam;
+    const INTERNALMESSAGE::RECEIVER iam;
     const char * incoming_conn;
     const char * listen_started;
     const char * listen_error;
@@ -60,7 +60,7 @@ public:
 template<class D>
 NetListener<D>::NetListener(InternalMsgRouter<D> * const Internalmsg_router_) :
                                                     InternalMsgSender<D>(Internalmsg_router_),
-                                                    iam(INTNLMSG::RECV_Netlistener),
+                                                    iam(INTERNALMESSAGE::RECV_Netlistener),
                                                     incoming_conn("[NetListener] incoming connection"),
                                                     listen_started("[NetListener] listening mode started"),
                                                     listen_error("[NetListener] listen error"),
@@ -89,24 +89,24 @@ NetListener<D>::NetListener(InternalMsgRouter<D> * const Internalmsg_router_) :
             // change socket's state to LISTEN
             if (listen(sockToListen, 5) != -1)
             {
-                this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                        std::move(std::string(listen_started)));
             }
             else
             {
-                this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+                this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                        std::move(std::string(listen_error)));
             }
         }
         else
         {
-            this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+            this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                    std::move(std::string(bind_error)));
         }
     }
     else
     {
-        this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+        this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                std::move(std::string(sock_creation_error)));
     }
 }
@@ -120,11 +120,11 @@ void NetListener<D>::MainLoop()
 template<class D>
 void NetListener<D>::operator()()
 {
-    Internalmsgreceivr InternalMsgReceiver(this, INTNLMSG::RECV_DEVICE);
+    Internalmsgreceivr InternalMsgReceiver(this, INTERNALMESSAGE::RECV_DEVICE);
     imr_ptr = &InternalMsgReceiver;
     std::reference_wrapper<Internalmsgreceivr> rv = std::reference_wrapper<Internalmsgreceivr>(InternalMsgReceiver);
     std::thread thrd = std::thread(rv);
-    this->Internalmsg_router->register_receiver(imr_ptr);
+    this->internalMsgRouter->register_receiver(imr_ptr);
 
     while (!shutdown_ordered)
     {
@@ -136,13 +136,13 @@ void NetListener<D>::operator()()
 
         if (sock != -1)
         {
-            this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+            this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                                    std::move(std::string(incoming_conn)));
-            this->send_internal_msg(INTNLMSG::RECV_NETCONNHANDLER, sock, std::move(std::string(incoming_conn)));
+            this->send_internal_msg(INTERNALMESSAGE::RECV_NETCONNHANDLER, sock, std::move(std::string(incoming_conn)));
         }
         else
         {
-            this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE, std::move(std::string(accept_error)));
+            this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE, std::move(std::string(accept_error)));
 
             if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
@@ -154,13 +154,13 @@ void NetListener<D>::operator()()
             }
         }
     }
-    this->Internalmsg_router->deregister_receiver(imr_ptr);
+    this->internalMsgRouter->deregister_receiver(imr_ptr);
     imr_ptr->stopthread();
 
     if (thrd.joinable())
         thrd.join();
 
-    this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
+    this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE,
                            std::move(std::string(Netlistener_stopped)));
 }
 
@@ -172,7 +172,7 @@ typename NetListener<D>::INTMSGRES NetListener<D>::HandleInternalMsg(D data)
 
     switch (command)
     {
-        case INTNLMSG::SHUTDOWN_ALL:
+        case INTERNALMESSAGE::SHUTDOWN_ALL:
         {
            shutdown_ordered = true;
            shutdown(sockToListen, SHUT_RDWR);//terminate accept

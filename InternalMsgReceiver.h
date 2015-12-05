@@ -13,7 +13,7 @@ template <class D>
 class InternalMsgReceiver
 {
 protected:
-    const INTNLMSG::RECEIVER iam;
+    const INTERNALMESSAGE::RECEIVER iam;
     std::shared_ptr<std::mutex> mtx_p;
     std::shared_ptr<std::queue<D>> message_queue_p;
     std::shared_ptr<std::condition_variable> data_cond_p;
@@ -28,12 +28,12 @@ public:
         HANDLE_FAILED
     };
 
-    InternalMsgReceiver(INTNLMSG::RECEIVER iam_) : iam(iam_), mtx_p(new std::mutex),
+    InternalMsgReceiver(INTERNALMESSAGE::RECEIVER iam_) : iam(iam_), mtx_p(new std::mutex),
                                                   message_queue_p(new std::queue<D>),
                                                   data_cond_p(new std::condition_variable),
                                                   stop(false)
     {
-        myname = INTNLMSG::receivers_names[iam];
+        myname = INTERNALMESSAGE::receivers_names[iam];
     }
 
     virtual ~InternalMsgReceiver();
@@ -42,7 +42,7 @@ public:
     void MainLoop();
     virtual void operator ()();
     virtual HANDLE_RES HandleMsg(D data) = 0;
-    INTNLMSG::RECEIVER get_type() const;
+    INTERNALMESSAGE::RECEIVER get_type() const;
     std::string getname() const;
     void stopthread();
 };
@@ -110,7 +110,7 @@ void InternalMsgReceiver<D>::operator ()()
 }
 
 template<class D>
-INTNLMSG::RECEIVER InternalMsgReceiver<D>::get_type() const
+INTERNALMESSAGE::RECEIVER InternalMsgReceiver<D>::get_type() const
 {
     return iam;
 }
@@ -123,7 +123,7 @@ void InternalMsgReceiver<D>::stopthread()
 
     if (myname == "INTERNL_MSG_ROUTER")
         stop = true;
-    D dummy_msg = D(INTNLMSG::RECV_BROADCAST, -1, std::move(std::string("exit")));
+    D dummy_msg = D(INTERNALMESSAGE::RECV_BROADCAST, -1, std::move(std::string("exit")));
     EnqueMsg(dummy_msg);
 }
 
@@ -145,7 +145,7 @@ std::string InternalMsgReceiver<D>::getname() const
 //    Device<D> *const dev;
 
 //public:
-//    internalmsgreceiver_dev(Device<D> *const dev_, INTNLMSG::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
+//    internalmsgreceiver_dev(Device<D> *const dev_, INTERNALMESSAGE::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
 //                                                                        dev(dev_)
 
 //    {

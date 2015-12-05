@@ -16,7 +16,6 @@ LIBS += -pthread
 HEADERS += \
     arraywrapper.h \
     Device.h \
-    Connectionhandler.h \
     Protocol.h \
     WorkerDisplay.h \
     DeviceAndroid.h \
@@ -29,5 +28,7 @@ HEADERS += \
     NetListener.h \
     NetConnectionHandler.h \
     ProtocolAndroidDev.h \
-    ProtocolRemConsole.h
+    ProtocolRemConsole.h \
+    ConnectionHandler.h \
+    Log.h
 

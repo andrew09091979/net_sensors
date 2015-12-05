@@ -1,6 +1,6 @@
 #include "ProtocolRemConsole.h"
 
-ProtocolRemConsole::ProtocolRemConsole(std::shared_ptr<Connectionhandler> conn) : Protocol(conn),
+ProtocolRemConsole::ProtocolRemConsole(std::shared_ptr<ConnectionHandler> conn) : Protocol(conn),
                                                                                   START_MARKER('#'),
                                                                                   START_MARKER_LEN(1),
                                                                                   MSG_SIZE_LEN(2),

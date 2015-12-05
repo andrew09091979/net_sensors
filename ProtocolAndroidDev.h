@@ -32,7 +32,7 @@ class ProtocolAndroidDev : public Protocol<char>
 
     int exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response);
 public:
-    ProtocolAndroidDev(std::shared_ptr<Connectionhandler> conn);
+    ProtocolAndroidDev(std::shared_ptr<ConnectionHandler> conn);
 
     int getDeviceName(std::string &devName);
     int getDeviceConfig(std::string &devConfig);
