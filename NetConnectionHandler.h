@@ -5,21 +5,21 @@
 #include <queue>
 #include <condition_variable>
 #include <thread>
-#include "Internalmsgreceiver.h"
-#include "Internalmsgsender.h"
-#include "Internalmsgrouter.h"
-#include "Internalmsg.h"
-#include "Deviceandroid.h"
-#include "Deviceremconsole.h"
-#include "Protocolandroiddev.h"
-#include "Protocolremconsole.h"
+#include "InternalMsgReceiver.h"
+#include "InternalMsgSender.h"
+#include "InternalMsgRouter.h"
+#include "InternalMsg.h"
+#include "DeviceAndroid.h"
+#include "DeviceRemConsole.h"
+#include "ProtocolAndroidDev.h"
+#include "ProtocolRemConsole.h"
 #include "Connectionhandler.h"
 
 template<class D>
-class Netconnectionhandler : public Internalmsgreceiver<D>, public Internalmsgsender<D>
+class NetConnectionHandler : public InternalMsgReceiver<D>, public InternalMsgSender<D>
 {
-    typedef Internalmsgreceiver<D> WORKER;
-    Internalmsgrouter<D> * const Internalmsg_router;
+    typedef InternalMsgReceiver<D> WORKER;
+    InternalMsgRouter<D> * const Internalmsg_router;
     const char * start_clientserv;
     const char * sock_is_invalid;
     const char * invalid_dev_type;
@@ -27,28 +27,28 @@ class Netconnectionhandler : public Internalmsgreceiver<D>, public Internalmsgse
     int sock;
 
 public:
-    typename Internalmsgreceiver<D>::HANDLE_RES HandleMsg(D data);
-    Netconnectionhandler(Internalmsgrouter<D> * const Internalmsg_router_);
-    ~Netconnectionhandler(){}
+    typename InternalMsgReceiver<D>::HANDLE_RES HandleMsg(D data);
+    NetConnectionHandler(InternalMsgRouter<D> * const Internalmsg_router_);
+    ~NetConnectionHandler(){}
 };
 
 template<class D>
-Netconnectionhandler<D>::Netconnectionhandler(Internalmsgrouter<D> * const Internalmsg_router_) :
-                                                    Internalmsgreceiver<D>(INTNLMSG::RECV_NETCONNHANDLER),
-                                                    Internalmsgsender<D>(Internalmsg_router_),
+NetConnectionHandler<D>::NetConnectionHandler(InternalMsgRouter<D> * const Internalmsg_router_) :
+                                                    InternalMsgReceiver<D>(INTNLMSG::RECV_NETCONNHANDLER),
+                                                    InternalMsgSender<D>(Internalmsg_router_),
                                                     Internalmsg_router(Internalmsg_router_),
-                                                    start_clientserv("[Netconnectionhandler] starting Device"),
-                                                    sock_is_invalid("[Netconnectionhandler] socket is invalid"),
-                                                    invalid_dev_type("[Netconnectionhandler] invalid Device type"),
-                                                    cannot_get_dev_type("[Netconnectionhandler] cannot get Device type")
+                                                    start_clientserv("[NetConnectionHandler] starting Device"),
+                                                    sock_is_invalid("[NetConnectionHandler] socket is invalid"),
+                                                    invalid_dev_type("[NetConnectionHandler] invalid Device type"),
+                                                    cannot_get_dev_type("[NetConnectionHandler] cannot get Device type")
 {
     Internalmsg_router->register_receiver(this);
 }
 
 template<class D>
-typename Internalmsgreceiver<D>::HANDLE_RES Netconnectionhandler<D>::HandleMsg(D data)
+typename InternalMsgReceiver<D>::HANDLE_RES NetConnectionHandler<D>::HandleMsg(D data)
 {
-    typename Internalmsgreceiver<D>::HANDLE_RES res = Internalmsgreceiver<D>::HANDLE_FAILED;
+    typename InternalMsgReceiver<D>::HANDLE_RES res = InternalMsgReceiver<D>::HANDLE_FAILED;
 
     if (data.getreceiver() == INTNLMSG::RECV_NETCONNHANDLER)
     {
@@ -66,33 +66,33 @@ typename Internalmsgreceiver<D>::HANDLE_RES Netconnectionhandler<D>::HandleMsg(D
                     case 0x31:
                     {
                         std::shared_ptr<Connectionhandler> conn(new Connectionhandler(sock));
-                        std::shared_ptr<Protocol<char>> prot(new Protocolandroiddev(conn));
-                        Deviceandroid<D> dev(Internalmsg_router, prot);
+                        std::shared_ptr<Protocol<char>> prot(new ProtocolAndroidDev(conn));
+                        DeviceAndroid<D> dev(Internalmsg_router, prot);
 
                         this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                                std::move(std::string(start_clientserv)));
-                        this->send_internal_msg(INTNLMSG::RECV_Device_MANAGER, INTNLMSG::Device_ADDED,
+                        this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_ADDED,
                                                std::move(std::string(start_clientserv)));
-                        //std::thread thr = std::thread(std::reference_wrapper<Deviceandroid<D>>(dev));
+                        //std::thread thr = std::thread(std::reference_wrapper<DeviceAndroid<D>>(dev));
                         std::thread thr = std::thread(dev);
                         thr.detach();
-                        res = Internalmsgreceiver<D>::HANDLE_OK;
+                        res = InternalMsgReceiver<D>::HANDLE_OK;
                     }
                     break;
                     case 0x32:
                     {
                         std::shared_ptr<Connectionhandler> conn(new Connectionhandler(sock));
-                        std::shared_ptr<Protocol<char>> prot(new Protocolremconsole(conn));
-                        Deviceremconsole<D> dev(Internalmsg_router, prot);
+                        std::shared_ptr<Protocol<char>> prot(new ProtocolRemConsole(conn));
+                        DeviceRemConsole<D> dev(Internalmsg_router, prot);
 
                         this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                                std::move(std::string(start_clientserv)));
-                        this->send_internal_msg(INTNLMSG::RECV_Device_MANAGER, INTNLMSG::Device_ADDED,
+                        this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_ADDED,
                                                std::move(std::string(start_clientserv)));
-                        //std::thread thr = std::thread(std::reference_wrapper<Deviceremconsole<D>>(dev));
+                        //std::thread thr = std::thread(std::reference_wrapper<DeviceRemConsole<D>>(dev));
                         std::thread thr = std::thread(dev);
                         thr.detach();
-                        res = Internalmsgreceiver<D>::HANDLE_OK;
+                        res = InternalMsgReceiver<D>::HANDLE_OK;
                     }
                     break;
                     default:

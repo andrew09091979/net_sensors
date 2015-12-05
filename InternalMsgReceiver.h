@@ -6,11 +6,11 @@
 #include <queue>
 #include <condition_variable>
 #include <iostream>
-#include "Internalmsg.h"
+#include "InternalMsg.h"
 //#include "Device.h"
 
 template <class D>
-class Internalmsgreceiver
+class InternalMsgReceiver
 {
 protected:
     const INTNLMSG::RECEIVER iam;
@@ -28,7 +28,7 @@ public:
         HANDLE_FAILED
     };
 
-    Internalmsgreceiver(INTNLMSG::RECEIVER iam_) : iam(iam_), mtx_p(new std::mutex),
+    InternalMsgReceiver(INTNLMSG::RECEIVER iam_) : iam(iam_), mtx_p(new std::mutex),
                                                   message_queue_p(new std::queue<D>),
                                                   data_cond_p(new std::condition_variable),
                                                   stop(false)
@@ -36,9 +36,9 @@ public:
         myname = INTNLMSG::receivers_names[iam];
     }
 
-    virtual ~Internalmsgreceiver();
+    virtual ~InternalMsgReceiver();
     void EnqueMsg(D data);
-    Internalmsgreceiver<D> &operator <<(const D &data);
+    InternalMsgReceiver<D> &operator <<(const D &data);
     void MainLoop();
     virtual void operator ()();
     virtual HANDLE_RES HandleMsg(D data) = 0;
@@ -48,12 +48,12 @@ public:
 };
 
 template <class D>
-Internalmsgreceiver<D>::~Internalmsgreceiver()
+InternalMsgReceiver<D>::~InternalMsgReceiver()
 {
 }
 
 template<class D>
-Internalmsgreceiver<D> &Internalmsgreceiver<D>::operator <<(const D &data)
+InternalMsgReceiver<D> &InternalMsgReceiver<D>::operator <<(const D &data)
 {
     std::lock_guard<std::mutex> lk(*mtx_p);
     message_queue_p->push(std::move(data));
@@ -63,7 +63,7 @@ Internalmsgreceiver<D> &Internalmsgreceiver<D>::operator <<(const D &data)
 }
 
 template<class D>
-void Internalmsgreceiver<D>::EnqueMsg(D data)
+void InternalMsgReceiver<D>::EnqueMsg(D data)
 {
     std::lock_guard<std::mutex> lk(*mtx_p);
     message_queue_p->push(std::move(data));
@@ -71,7 +71,7 @@ void Internalmsgreceiver<D>::EnqueMsg(D data)
 }
 
 template<class D>
-void Internalmsgreceiver<D>::MainLoop()
+void InternalMsgReceiver<D>::MainLoop()
 {
 //    while(!stop)
 //    {
@@ -82,11 +82,11 @@ void Internalmsgreceiver<D>::MainLoop()
 //        lk.unlock();
 //        HandleMsg(data);
 //    }
-//    std::cout << "[Internalmsgreceiver] " << myname << " stopped" << std::endl;
+//    std::cout << "[InternalMsgReceiver] " << myname << " stopped" << std::endl;
 }
 
 template<class D>
-void Internalmsgreceiver<D>::operator ()()
+void InternalMsgReceiver<D>::operator ()()
 {
     while(!stop)
     {
@@ -110,13 +110,13 @@ void Internalmsgreceiver<D>::operator ()()
 }
 
 template<class D>
-INTNLMSG::RECEIVER Internalmsgreceiver<D>::get_type() const
+INTNLMSG::RECEIVER InternalMsgReceiver<D>::get_type() const
 {
     return iam;
 }
 
 template<class D>
-void Internalmsgreceiver<D>::stopthread()
+void InternalMsgReceiver<D>::stopthread()
 {
     std::cout << "in stopthread for " + myname << std::endl;
     stop = true;
@@ -128,7 +128,7 @@ void Internalmsgreceiver<D>::stopthread()
 }
 
 template <class D>
-std::string Internalmsgreceiver<D>::getname() const
+std::string InternalMsgReceiver<D>::getname() const
 {
     return myname;
 }
@@ -140,20 +140,20 @@ std::string Internalmsgreceiver<D>::getname() const
 //};
 
 //template <class D>
-//class internalmsgreceiver_dev : public Internalmsgreceiver<D>
+//class internalmsgreceiver_dev : public InternalMsgReceiver<D>
 //{
 //    Device<D> *const dev;
 
 //public:
-//    internalmsgreceiver_dev(Device<D> *const dev_, INTNLMSG::RECEIVER iam_) : Internalmsgreceiver<D>(iam_),
+//    internalmsgreceiver_dev(Device<D> *const dev_, INTNLMSG::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
 //                                                                        dev(dev_)
 
 //    {
 //    }
 
-//    typename Internalmsgreceiver<D>::HANDLE_RES HandleMsg(D data)
+//    typename InternalMsgReceiver<D>::HANDLE_RES HandleMsg(D data)
 //    {
-//        typename Internalmsgreceiver<D>::HANDLE_RES res;
+//        typename InternalMsgReceiver<D>::HANDLE_RES res;
 //        res = dev->HandleInternalMsg(std::move(data));
 //        return res;
 //    }

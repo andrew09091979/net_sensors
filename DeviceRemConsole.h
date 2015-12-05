@@ -5,19 +5,19 @@
 #include <functional>
 #include "Device.h"
 #include "Protocol.h"
-#include "Internalmsgreceiver.h"
-#include "Internalmsgrouter.h"
+#include "InternalMsgReceiver.h"
+#include "InternalMsgRouter.h"
 
 template <class D>
-class Deviceremconsole;
+class DeviceRemConsole;
 
 template <class D>
-class Internalmsgreceivr : public Internalmsgreceiver<D>
+class Internalmsgreceivr : public InternalMsgReceiver<D>
 {
     Device<D> *const dev;
 
 public:
-    Internalmsgreceivr(Device<D> * const dev_, INTNLMSG::RECEIVER iam_) : Internalmsgreceiver<D>(iam_),
+    Internalmsgreceivr(Device<D> * const dev_, INTNLMSG::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
                                                                          dev(dev_)
 
     {
@@ -29,7 +29,7 @@ public:
 
     }
 
-    typename Internalmsgreceiver<D>::HANDLE_RES HandleMsg(D data)
+    typename InternalMsgReceiver<D>::HANDLE_RES HandleMsg(D data)
     {
         if (dev != nullptr)
         {
@@ -37,14 +37,14 @@ public:
         }
         else
         {
-            return Internalmsgreceiver<D>::HANDLE_FAILED;
+            return InternalMsgReceiver<D>::HANDLE_FAILED;
         }
     }
 };
 
 
 template <class D>
-class Deviceremconsole : public Device<D>
+class DeviceRemConsole : public Device<D>
 {
     enum STATE
     {
@@ -61,15 +61,15 @@ class Deviceremconsole : public Device<D>
     bool stop;
     bool shutdown_ordered;
     STATE state;
-    Internalmsgrouter<D> * const Internalmsg_router;
+    InternalMsgRouter<D> * const Internalmsg_router;
     std::shared_ptr<Protocol<char> > protocol_dev;
     const std::string devName;
     Internalmsgreceivr<D> *imr_ptr;
 
 public:
-    Deviceremconsole(Internalmsgrouter<D> * const Internalmsg_router_,
+    DeviceRemConsole(InternalMsgRouter<D> * const Internalmsg_router_,
                     std::shared_ptr<Protocol<char> > protocol_);
-    ~Deviceremconsole()
+    ~DeviceRemConsole()
     {
 
     }
@@ -78,7 +78,7 @@ public:
 };
 
 template <class D>
-Deviceremconsole<D>::Deviceremconsole(Internalmsgrouter<D> * const Internalmsg_router_,
+DeviceRemConsole<D>::DeviceRemConsole(InternalMsgRouter<D> * const Internalmsg_router_,
                                       std::shared_ptr<Protocol<char> > protocol_) :
                                                                    Device<D>(Internalmsg_router_),
                                                                    cmd_received("[remote console] - command received: "),
@@ -96,11 +96,11 @@ Deviceremconsole<D>::Deviceremconsole(Internalmsgrouter<D> * const Internalmsg_r
 }
 
 template <class D>
-void Deviceremconsole<D>::operator ()()
+void DeviceRemConsole<D>::operator ()()
 {
-    Internalmsgreceivr<D> internalmsgreceiver(this, INTNLMSG::RECV_Device);
-    imr_ptr = &internalmsgreceiver;
-    std::reference_wrapper<Internalmsgreceivr<D> > rv = std::reference_wrapper<Internalmsgreceivr<D> >(internalmsgreceiver);
+    Internalmsgreceivr<D> InternalMsgReceiver(this, INTNLMSG::RECV_DEVICE);
+    imr_ptr = &InternalMsgReceiver;
+    std::reference_wrapper<Internalmsgreceivr<D> > rv = std::reference_wrapper<Internalmsgreceivr<D> >(InternalMsgReceiver);
     std::thread thrd = std::thread(rv);
     Internalmsg_router->register_receiver(imr_ptr);
 
@@ -140,12 +140,12 @@ void Deviceremconsole<D>::operator ()()
                 {
                     this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                            std::move(std::string("num_of_devs_demanded")));
-                    this->send_internal_msg(INTNLMSG::RECV_Device_MANAGER, INTNLMSG::GET_NUM_OF_DEVS,
+                    this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::GET_NUM_OF_DEVS,
                                            std::move(std::string("num_of_devs_demanded")));
                 }
                 else if(command.compare(std::string("shutdown")) == 0)
                 {
-                    this->send_internal_msg(INTNLMSG::RECV_Device_MANAGER, INTNLMSG::SHUTDOWN_ALL,
+                    this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::SHUTDOWN_ALL,
                                            std::move(std::string("shutdown")));
                 }
                 else
@@ -164,7 +164,7 @@ void Deviceremconsole<D>::operator ()()
                 protocol_dev->shutdown();
                 this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                        std::move(devName + std::string(" - shutdown")));
-                this->send_internal_msg(INTNLMSG::RECV_Device_MANAGER, INTNLMSG::Device_SHUTDOWN,
+                this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_SHUTDOWN,
                                        std::move(devName + std::string(" - shutdown")));
                 Internalmsg_router->deregister_receiver(imr_ptr);
                 this->imr_ptr->stopthread();
@@ -181,9 +181,9 @@ void Deviceremconsole<D>::operator ()()
 }
 
 template <class D>
-typename Deviceremconsole<D>::INTMSGRES Deviceremconsole<D>::HandleInternalMsg(D data)
+typename DeviceRemConsole<D>::INTMSGRES DeviceRemConsole<D>::HandleInternalMsg(D data)
 {
-    typename Deviceremconsole<D>::INTMSGRES res = Internalmsgreceiver<D>::HANDLE_FAILED;
+    typename DeviceRemConsole<D>::INTMSGRES res = InternalMsgReceiver<D>::HANDLE_FAILED;
     int command = data.getval();
 
     switch (command)

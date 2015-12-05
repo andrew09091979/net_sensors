@@ -6,10 +6,10 @@
 #include <unistd.h>
 #include "Device.h"
 #include "arraywrapper.h"
-#include "Internalmsgreceiver.h"
-#include "Internalmsgsender.h"
-#include "Internalmsgrouter.h"
-#include "Protocolandroiddev.h"
+#include "InternalMsgReceiver.h"
+#include "InternalMsgSender.h"
+#include "InternalMsgRouter.h"
+#include "ProtocolAndroidDev.h"
 #include "Connectionhandler.h"
 
 #define MESSAGE_CORRUPTED "Message corrupted"
@@ -32,7 +32,7 @@ struct DEVCFG
 };
 
 template <class D>
-class Deviceandroid : public Device<D>
+class DeviceAndroid : public Device<D>
 {
     enum STATE
     {
@@ -42,28 +42,28 @@ class Deviceandroid : public Device<D>
         SHUTDOWN
     };
 
-    class Internalmsgreceivr : public Internalmsgreceiver<D>
+    class Internalmsgreceivr : public InternalMsgReceiver<D>
     {
         Device<D> *const dev;
 
     public:
-        Internalmsgreceivr(Device<D> *const dev_, INTNLMSG::RECEIVER iam_) : Internalmsgreceiver<D>(iam_),
+        Internalmsgreceivr(Device<D> *const dev_, INTNLMSG::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
                                                                             dev(dev_)
 
         {
         }
 
-        typename Internalmsgreceiver<D>::HANDLE_RES HandleMsg(D data)
+        typename InternalMsgReceiver<D>::HANDLE_RES HandleMsg(D data)
         {
-            typename Internalmsgreceiver<D>::HANDLE_RES res;
+            typename InternalMsgReceiver<D>::HANDLE_RES res;
             res = dev->HandleInternalMsg(std::move(data));
             return res;
         }
     };
 
-    typedef Internalmsgreceiver<D> WORKER;
+    typedef InternalMsgReceiver<D> WORKER;
     typedef typename Device<D>::INTMSGRES INTMSGRES;
-    Internalmsgrouter<D> * const Internalmsg_router;
+    InternalMsgRouter<D> * const Internalmsg_router;
     std::shared_ptr<Protocol<char> > protocol_dev;
     std::string dev_name;
     Internalmsgreceivr *imr_ptr;
@@ -74,15 +74,15 @@ class Deviceandroid : public Device<D>
     std::string devName;
     std::string devCfg;
 public:
-    Deviceandroid(Internalmsgrouter<D> * const Internalmsg_router_,
+    DeviceAndroid(InternalMsgRouter<D> * const Internalmsg_router_,
            std::shared_ptr<Protocol<char> > protocol_);
-    ~Deviceandroid(){}
+    ~DeviceAndroid(){}
     void operator()();
     INTMSGRES HandleInternalMsg(D data);
 };
 
 template <class D>
-Deviceandroid<D>::Deviceandroid(Internalmsgrouter<D> * const Internalmsg_router_,
+DeviceAndroid<D>::DeviceAndroid(InternalMsgRouter<D> * const Internalmsg_router_,
                                 std::shared_ptr<Protocol<char> > protocol_) :
                                                               Device<D>(Internalmsg_router_),
                                                               Internalmsg_router(Internalmsg_router_),
@@ -97,12 +97,12 @@ Deviceandroid<D>::Deviceandroid(Internalmsgrouter<D> * const Internalmsg_router_
 }
 
 template<class D>
-void Deviceandroid<D>::operator()()
+void DeviceAndroid<D>::operator()()
 {
 //    std::cout << "starting Dev thread" << std::endl;
-    Internalmsgreceivr internalmsgreceiver(this, INTNLMSG::RECV_Device);
-    imr_ptr = &internalmsgreceiver;
-    std::reference_wrapper<Internalmsgreceivr> rv = std::reference_wrapper<Internalmsgreceivr>(internalmsgreceiver);
+    Internalmsgreceivr InternalMsgReceiver(this, INTNLMSG::RECV_DEVICE);
+    imr_ptr = &InternalMsgReceiver;
+    std::reference_wrapper<Internalmsgreceivr> rv = std::reference_wrapper<Internalmsgreceivr>(InternalMsgReceiver);
     std::thread thrd = std::thread(rv);
     Internalmsg_router->register_receiver(imr_ptr);
 
@@ -175,7 +175,7 @@ void Deviceandroid<D>::operator()()
                 stop = true;
                 this->send_internal_msg(INTNLMSG::RECV_DISPLAY, INTNLMSG::SHOW_MESSAGE,
                                        std::move(devName + std::string("- shutdown")));
-                this->send_internal_msg(INTNLMSG::RECV_Device_MANAGER, INTNLMSG::Device_SHUTDOWN,
+                this->send_internal_msg(INTNLMSG::RECV_DEVICE_MANAGER, INTNLMSG::DEVICE_SHUTDOWN,
                                        std::move(devName + std::string("- shutdown")));
                 Internalmsg_router->deregister_receiver(imr_ptr);
                 this->imr_ptr->stopthread();
@@ -189,9 +189,9 @@ void Deviceandroid<D>::operator()()
 }
 
 template <class D>
-typename Deviceandroid<D>::INTMSGRES Deviceandroid<D>::HandleInternalMsg(D data)
+typename DeviceAndroid<D>::INTMSGRES DeviceAndroid<D>::HandleInternalMsg(D data)
 {
-    typename Deviceandroid<D>::INTMSGRES res = Internalmsgreceiver<D>::HANDLE_FAILED;
+    typename DeviceAndroid<D>::INTMSGRES res = InternalMsgReceiver<D>::HANDLE_FAILED;
     int command = data.getval();
 
     switch (command)

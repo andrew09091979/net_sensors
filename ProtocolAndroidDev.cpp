@@ -1,6 +1,6 @@
-#include "Protocolandroiddev.h"
+#include "ProtocolAndroidDev.h"
 
-Protocolandroiddev::Protocolandroiddev(std::shared_ptr<Connectionhandler> conn) : Protocol(conn),
+ProtocolAndroidDev::ProtocolAndroidDev(std::shared_ptr<Connectionhandler> conn) : Protocol(conn),
                                                                                   START_MARKER('#'),
                                                                                   START_MARKER_LEN(1),
                                                                                   MSG_SIZE_LEN(2),
@@ -9,7 +9,7 @@ Protocolandroiddev::Protocolandroiddev(std::shared_ptr<Connectionhandler> conn) 
 
 }
 
-int Protocolandroiddev::exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response)
+int ProtocolAndroidDev::exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response)
 {
     bool cycleComplete = false;
     STATE state = SEND_REQUEST;
@@ -94,7 +94,7 @@ int Protocolandroiddev::exchangeCycle(const arraywrapper<char> &msg, arraywrappe
     return res;
 }
 
-int Protocolandroiddev::getDeviceName(std::string &devName)
+int ProtocolAndroidDev::getDeviceName(std::string &devName)
 {
     int res = -1;
     arraywrapper<char> msg(4);
@@ -113,7 +113,7 @@ int Protocolandroiddev::getDeviceName(std::string &devName)
     return res;
 }
 
-int Protocolandroiddev::getDeviceConfig(std::string &devConfig)
+int ProtocolAndroidDev::getDeviceConfig(std::string &devConfig)
 {
     int res = -1;
     arraywrapper<char> msg(4);
@@ -133,7 +133,7 @@ int Protocolandroiddev::getDeviceConfig(std::string &devConfig)
     return res;
 }
 
-int Protocolandroiddev::getData(const int param, arraywrapper<char> &data)
+int ProtocolAndroidDev::getData(const int param, arraywrapper<char> &data)
 {
     int res = -1;
     arraywrapper<char> msg(4);
@@ -148,20 +148,20 @@ int Protocolandroiddev::getData(const int param, arraywrapper<char> &data)
     return res;
 }
 
-int Protocolandroiddev::getCommand(const int param, std::string &cmd)
+int ProtocolAndroidDev::getCommand(const int param, std::string &cmd)
 {
     int res = -1;
 
     return res;
 }
 
-int Protocolandroiddev::sendData(arraywrapper<char> &data)
+int ProtocolAndroidDev::sendData(arraywrapper<char> &data)
 {
     int res = -1;
 
     return res;
 }
-int Protocolandroiddev::shutdown()
+int ProtocolAndroidDev::shutdown()
 {
     return conn_handl->shutdownconn();
 }

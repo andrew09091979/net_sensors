@@ -9,30 +9,30 @@
 #include <vector>
 #include <unistd.h>
 //#include "modulemanager.h"
-#include "Internalmsgreceiver.h"
-#include "Internalmsg.h"
-#include "Internalmsgrouter.h"
-#include "Internalmsgsender.h"
+#include "InternalMsgReceiver.h"
+#include "InternalMsg.h"
+#include "InternalMsgRouter.h"
+#include "InternalMsgSender.h"
 
 template<class D>
-class Netlistener : public Internalmsgsender<D>
+class NetListener : public InternalMsgSender<D>
 {
-    typedef Internalmsgreceiver<D> WORKER;
-    typedef typename Internalmsgreceiver<D>::HANDLE_RES INTMSGRES;
+    typedef InternalMsgReceiver<D> WORKER;
+    typedef typename InternalMsgReceiver<D>::HANDLE_RES INTMSGRES;
 
-    class Internalmsgreceivr : public Internalmsgreceiver<D>
+    class Internalmsgreceivr : public InternalMsgReceiver<D>
     {
-        Netlistener<D> *const dev;
+        NetListener<D> *const dev;
 
     public:
-        Internalmsgreceivr(Netlistener<D> *const dev_, INTNLMSG::RECEIVER iam_) : Internalmsgreceiver<D>(iam_),
+        Internalmsgreceivr(NetListener<D> *const dev_, INTNLMSG::RECEIVER iam_) : InternalMsgReceiver<D>(iam_),
                                                                                  dev(dev_)
         {
         }
 
-        typename Internalmsgreceiver<D>::HANDLE_RES HandleMsg(D data)
+        typename InternalMsgReceiver<D>::HANDLE_RES HandleMsg(D data)
         {
-            typename Internalmsgreceiver<D>::HANDLE_RES res;
+            typename InternalMsgReceiver<D>::HANDLE_RES res;
             res = dev->HandleInternalMsg(std::move(data));
             return res;
         }
@@ -51,23 +51,23 @@ class Netlistener : public Internalmsgsender<D>
     bool shutdown_ordered;
 
 public:
-    Netlistener(Internalmsgrouter<D> * const Internalmsg_router_);
+    NetListener(InternalMsgRouter<D> * const Internalmsg_router_);
     void MainLoop();
     INTMSGRES HandleInternalMsg(D data);
     void operator()();
 };
 
 template<class D>
-Netlistener<D>::Netlistener(Internalmsgrouter<D> * const Internalmsg_router_) :
-                                                    Internalmsgsender<D>(Internalmsg_router_),
+NetListener<D>::NetListener(InternalMsgRouter<D> * const Internalmsg_router_) :
+                                                    InternalMsgSender<D>(Internalmsg_router_),
                                                     iam(INTNLMSG::RECV_Netlistener),
-                                                    incoming_conn("[Netlistener] incoming connection"),
-                                                    listen_started("[Netlistener] listening mode started"),
-                                                    listen_error("[Netlistener] listen error"),
-                                                    bind_error("[Netlistener] bind error"),
-                                                    sock_creation_error("[Netlistener] socket creation error"),
-                                                    accept_error("[Netlistener] accept error"),
-                                                    Netlistener_stopped("[Netlistener] stopped"),
+                                                    incoming_conn("[NetListener] incoming connection"),
+                                                    listen_started("[NetListener] listening mode started"),
+                                                    listen_error("[NetListener] listen error"),
+                                                    bind_error("[NetListener] bind error"),
+                                                    sock_creation_error("[NetListener] socket creation error"),
+                                                    accept_error("[NetListener] accept error"),
+                                                    Netlistener_stopped("[NetListener] stopped"),
                                                     shutdown_ordered(false)
 {
     struct sockaddr_in addr;
@@ -112,17 +112,17 @@ Netlistener<D>::Netlistener(Internalmsgrouter<D> * const Internalmsg_router_) :
 }
 
 template<class D>
-void Netlistener<D>::MainLoop()
+void NetListener<D>::MainLoop()
 {
 
 }
 
 template<class D>
-void Netlistener<D>::operator()()
+void NetListener<D>::operator()()
 {
-    Internalmsgreceivr internalmsgreceiver(this, INTNLMSG::RECV_Device);
-    imr_ptr = &internalmsgreceiver;
-    std::reference_wrapper<Internalmsgreceivr> rv = std::reference_wrapper<Internalmsgreceivr>(internalmsgreceiver);
+    Internalmsgreceivr InternalMsgReceiver(this, INTNLMSG::RECV_DEVICE);
+    imr_ptr = &InternalMsgReceiver;
+    std::reference_wrapper<Internalmsgreceivr> rv = std::reference_wrapper<Internalmsgreceivr>(InternalMsgReceiver);
     std::thread thrd = std::thread(rv);
     this->Internalmsg_router->register_receiver(imr_ptr);
 
@@ -165,9 +165,9 @@ void Netlistener<D>::operator()()
 }
 
 template <class D>
-typename Netlistener<D>::INTMSGRES Netlistener<D>::HandleInternalMsg(D data)
+typename NetListener<D>::INTMSGRES NetListener<D>::HandleInternalMsg(D data)
 {
-    typename Netlistener<D>::INTMSGRES res = Internalmsgreceiver<D>::HANDLE_FAILED;
+    typename NetListener<D>::INTMSGRES res = InternalMsgReceiver<D>::HANDLE_FAILED;
     int command = data.getval();
 
     switch (command)

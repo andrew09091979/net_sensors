@@ -4,30 +4,30 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp \
-    Internalmsg.cpp \
-    Protocolremconsole.cpp \
-    Protooolandroiddev.cpp \
-    Connectionhandler.cpp
+    InternalMsg.cpp \
+    ConnectionHandler.cpp \
+    ProtocolRemConsole.cpp \
+    ProtocolAndroidDev.cpp
 
 QMAKE_CXXFLAGS += -std=c++0x
 
 LIBS += -pthread
 
 HEADERS += \
-    workerdisplay.h \
     arraywrapper.h \
-    Internalmsgrouter.h \
-    Internalmsgreceiver.h \
-    Internalmsg.h \
-    Internalmsgsender.h \
-    Netlistener.h \
     Device.h \
-    Deviceandroid.h \
-    Deviceremconsole.h \
-    Devicemanager.h \
     Connectionhandler.h \
-    Netconnectionhandler.h \
     Protocol.h \
-    Protocolandroiddev.h \
-    Protocolremconsole.h
+    WorkerDisplay.h \
+    DeviceAndroid.h \
+    DeviceManager.h \
+    DeviceRemConsole.h \
+    InternalMsg.h \
+    InternalMsgReceiver.h \
+    InternalMsgRouter.h \
+    InternalMsgSender.h \
+    NetListener.h \
+    NetConnectionHandler.h \
+    ProtocolAndroidDev.h \
+    ProtocolRemConsole.h
 

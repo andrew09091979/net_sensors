@@ -1,12 +1,10 @@
-#ifndef PROTOCOLREMCONSOLE_H
-#define PROTOCOLREMCONSOLE_H
+#ifndef PROTOCOLANDROIDDEV_H
+#define PROTOCOLANDROIDDEV_H
 
+#include <Protocol.h>
 #include <string>
-#include <mutex>
-#include "Protocol.h"
 
-
-class Protocolremconsole : public Protocol<char>
+class ProtocolAndroidDev : public Protocol<char>
 {
     enum MESSAGE_TO_SENSOR
     {
@@ -31,10 +29,10 @@ class Protocolremconsole : public Protocol<char>
     const int MSG_SIZE_LEN;
 
     int numBytesToRead;
-    std::mutex sendmtx;
+
     int exchangeCycle(const arraywrapper<char> &msg, arraywrapper<char> &response);
 public:
-    Protocolremconsole(std::shared_ptr<Connectionhandler> conn);
+    ProtocolAndroidDev(std::shared_ptr<Connectionhandler> conn);
 
     int getDeviceName(std::string &devName);
     int getDeviceConfig(std::string &devConfig);
@@ -42,7 +40,6 @@ public:
     int getCommand(const int param, std::string &cmd);
     int sendData(arraywrapper<char> &data);
     int shutdown();
-    ~Protocolremconsole() {}
+    ~ProtocolAndroidDev() {}
 };
-
-#endif // PROTOCOLREMCONSOLE_H
+#endif // PROTOCOLANDROIDDEV_H

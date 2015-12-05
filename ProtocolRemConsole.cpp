@@ -1,6 +1,6 @@
-#include "Protocolremconsole.h"
+#include "ProtocolRemConsole.h"
 
-Protocolremconsole::Protocolremconsole(std::shared_ptr<Connectionhandler> conn) : Protocol(conn),
+ProtocolRemConsole::ProtocolRemConsole(std::shared_ptr<Connectionhandler> conn) : Protocol(conn),
                                                                                   START_MARKER('#'),
                                                                                   START_MARKER_LEN(1),
                                                                                   MSG_SIZE_LEN(2),
@@ -9,42 +9,42 @@ Protocolremconsole::Protocolremconsole(std::shared_ptr<Connectionhandler> conn) 
 
 }
 
-int Protocolremconsole::exchangeCycle(const arraywrapper<char> &msg,
+int ProtocolRemConsole::exchangeCycle(const arraywrapper<char> &msg,
                                       arraywrapper<char> &response)
 {
     int res = 0;
     return res;
 }
 
-int Protocolremconsole::getDeviceName(std::string &devName)
+int ProtocolRemConsole::getDeviceName(std::string &devName)
 {
     int res = -1;
 
     return res;
 }
 
-int Protocolremconsole::getDeviceConfig(std::string &devConfig)
+int ProtocolRemConsole::getDeviceConfig(std::string &devConfig)
 {
     int res = -1;
 
     return res;
 }
 
-int Protocolremconsole::getData(const int param, arraywrapper<char> &data)
+int ProtocolRemConsole::getData(const int param, arraywrapper<char> &data)
 {
     int res = -1;
 
     return res;
 }
 
-int Protocolremconsole::getCommand(const int param, std::string &cmd)
+int ProtocolRemConsole::getCommand(const int param, std::string &cmd)
 {
     int res = -1;
     conn_handl->read_line(cmd);
     return res;
 }
 
-int Protocolremconsole::sendData(arraywrapper<char> &data)
+int ProtocolRemConsole::sendData(arraywrapper<char> &data)
 {
     int res = -1;
     std::lock_guard<std::mutex> lk(sendmtx);
@@ -56,7 +56,7 @@ int Protocolremconsole::sendData(arraywrapper<char> &data)
     return res;
 }
 
-int Protocolremconsole::shutdown()
+int ProtocolRemConsole::shutdown()
 {
     return conn_handl->shutdownconn();
 }
