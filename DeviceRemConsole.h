@@ -53,7 +53,7 @@ class DeviceRemConsole : public Device<D>
         SHUTDOWN
     };
 
-    typedef typename Device<D>::INTMSGRES INTMSGRES;
+    typedef typename Device<D>::INTERNAL_MSG_HANDLE_RES INTMSGRES;
     const char * cmd_received;
     const char * unknown_cmd;
     const char * num_of_devs_demanded;

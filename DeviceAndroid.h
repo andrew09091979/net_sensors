@@ -62,7 +62,7 @@ class DeviceAndroid : public Device<D>
     };
 
     typedef InternalMsgReceiver<D> WORKER;
-    typedef typename Device<D>::INTMSGRES INTMSGRES;
+    typedef typename Device<D>::INTERNAL_MSG_HANDLE_RES INTMSGRES;
     InternalMsgRouter<D> * const Internalmsg_router;
     std::shared_ptr<Protocol<char> > protocol_dev;
     std::string dev_name;
