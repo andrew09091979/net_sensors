@@ -88,9 +88,6 @@ typename InternalMsgReceiver<D>::HANDLE_RES DeviceManager<D>::HandleShutdownAll(
     this->Internalmsg_router->deregister_receiver(this);
     this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE, std::string(shutdown));
     this->send_internal_msg(INTERNALMESSAGE::RECV_BROADCAST, INTERNALMESSAGE::SHUTDOWN_ALL, std::string(shutdown));
-//        this->send_internal_msg(INTERNALMESSAGE::RECV_Netlistener, INTERNALMESSAGE::SHUTDOWN_ALL, std::string(shutdown));
-//        this->send_internal_msg(INTERNALMESSAGE::RECV_DEVICE, INTERNALMESSAGE::SHUTDOWN_ALL, std::string(shutdown));
-//        this->send_internal_msg(INTERNALMESSAGE::RECV_DISPLAY, INTERNALMESSAGE::SHOW_MESSAGE, std::string(shutdown));
     this->stopthread();
 
     return InternalMsgReceiver<D>::HANDLE_OK;
