@@ -71,11 +71,11 @@ typename InternalMsgReceiver<D>::HANDLE_RES NetConnectionHandler<D>::HandleMsg(D
                 try
                 {
                     DEVICE_FABRIC dev_fab = dev_fabric.at(dev_type[0]);
-                    (this->*dev_fab)();
+                    res = (this->*dev_fab)();
                 }
-                catch (const std::out_of_range& oor)
+                catch (const std::out_of_range & oor)
                 {
-                    this->invalidDeviceType();
+                    res = this->invalidDeviceType();
                 }
             }
             else

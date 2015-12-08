@@ -21,6 +21,7 @@ class DeviceManager  : public InternalMsgReceiver<D>, public InternalMsgSender<D
     typename InternalMsgReceiver<D>::HANDLE_RES HandleGetNumOfDevs(D data);
     typename InternalMsgReceiver<D>::HANDLE_RES HandleDeviceShutDown(D data);
     typename InternalMsgReceiver<D>::HANDLE_RES HandleShutdownAll(D data);
+    typename InternalMsgReceiver<D>::HANDLE_RES UnknownMessage(D data);
     bool stop;    
 public:
     DeviceManager(InternalMsgRouter<D> * const Internalmsg_router_);
@@ -51,11 +52,19 @@ DeviceManager<D>::DeviceManager(InternalMsgRouter<D> * const Internalmsg_router_
 template<class D>
 typename InternalMsgReceiver<D>::HANDLE_RES DeviceManager<D>::HandleMsg(D data)
 {
+    typename InternalMsgReceiver<D>::HANDLE_RES res;
     INTERNALMESSAGE::MSG_TYPE whatHappened = INTERNALMESSAGE::MSG_TYPE(data.getval());
-    HANDLER hnd = handleInternalMsg.at(whatHappened);
-    (this->*hnd)(data);
+    try
+    {
+        HANDLER hnd = handleInternalMsg.at(whatHappened);
+        res = (this->*hnd)(data);
+    }
+    catch (const std::out_of_range & oor)
+    {
+        res = this->UnknownMessage(data);
+    }
 
-    return InternalMsgReceiver<D>::HANDLE_OK;
+    return res;
 }
 template<class D>
 typename InternalMsgReceiver<D>::HANDLE_RES DeviceManager<D>::HandleDeviceAdded(D data)
@@ -91,6 +100,13 @@ typename InternalMsgReceiver<D>::HANDLE_RES DeviceManager<D>::HandleShutdownAll(
     this->stopthread();
 
     return InternalMsgReceiver<D>::HANDLE_OK;
+}
+
+template<class D>
+typename InternalMsgReceiver<D>::HANDLE_RES DeviceManager<D>::UnknownMessage(D data)
+{
+
+    return InternalMsgReceiver<D>::HANDLE_FAILED;
 }
 
 #endif // DeviceMANAGER_H

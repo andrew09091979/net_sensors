@@ -91,8 +91,8 @@ DeviceRemConsole<D>::DeviceRemConsole(InternalMsgRouter<D> * const Internalmsg_r
                                                                    protocol_dev(protocol_),
                                                                    devName("remote console")
 {
-    commands .push_back(std::string("Devices"));
-    commands .push_back(std::string("shutdown"));
+    commands.push_back(std::string("devices"));
+    commands.push_back(std::string("shutdown"));
 }
 
 template <class D>

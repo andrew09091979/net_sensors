@@ -88,6 +88,7 @@ void InternalMsgReceiver<D>::MainLoop()
 template<class D>
 void InternalMsgReceiver<D>::operator ()()
 {
+    HANDLE_RES res;
     while(!stop)
     {
         std::unique_lock<std::mutex> lk(*mtx_p);
@@ -99,7 +100,7 @@ void InternalMsgReceiver<D>::operator ()()
 
         if (!stop)
         {
-            HandleMsg(std::move(data));
+            res = HandleMsg(std::move(data));
         }
         else
         {
